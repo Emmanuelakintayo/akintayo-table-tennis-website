@@ -44,7 +44,7 @@ def header(current):
         '<a class="menu__link" href="{h}"><span>{n:02d}</span>{t}</a>'.format(
             h=h, t=t, n=i + 1)
         for i, (t, h) in enumerate(NAV))
-    home_cur = ' aria-current="page"' if current == "./" else ""
+    home_cur = ' aria-current="page"' if current == "index.html" else ""
     return f"""<a class="skip" href="#main">Skip to content</a>
 <div class="grain" aria-hidden="true"></div>
 <div class="curtain" aria-hidden="true"></div>
@@ -55,7 +55,7 @@ def header(current):
 
 <header class="nav">
   <div class="nav__inner">
-    <a class="logo" href="./" aria-label="AKINTAYO — home"{home_cur}><span class="logo__ball"></span>AKINTAYO</a>
+    <a class="logo" href="index.html" aria-label="AKINTAYO — home"{home_cur}><span class="logo__ball"></span>AKINTAYO</a>
     <nav class="nav__links" aria-label="Primary">{links}</nav>
     <a class="btn nav__cta" href="{mail()}" data-magnet="0.2"><span>Start a project</span>{ARROW}</a>
     <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
@@ -103,7 +103,7 @@ def footer():
   <div class="wrap">
     <div class="foot__grid">
       <div class="foot__brand">
-        <a class="logo" href="./"><span class="logo__ball"></span>AKINTAYO</a>
+        <a class="logo" href="index.html"><span class="logo__ball"></span>AKINTAYO</a>
         <p style="color:var(--fg-2);max-width:30ch">Website design, ecommerce and conversion work for the table tennis industry.</p>
         <p class="mono">Akingbehin Akintayo — working with clients internationally from Nigeria</p>
       </div>
@@ -123,7 +123,7 @@ def footer():
 </footer>"""
 
 
-def page(fname, title, desc, current, body, og_img="assets/img/og-default.jpg"):
+def page(fname, title, desc, current, body, og_img="og-default.jpg"):
     doc = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -131,20 +131,20 @@ def page(fname, title, desc, current, body, og_img="assets/img/og-default.jpg"):
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title}</title>
 <meta name="description" content="{desc}">
-<link rel="canonical" href="{DOMAIN}/{'' if fname == 'index.html' else fname}">
+<link rel="canonical" href="{DOMAIN}/{fname}">
 <meta name="theme-color" content="#08090b">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="AKINTAYO">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-<meta property="og:url" content="{DOMAIN}/{'' if fname == 'index.html' else fname}">
+<meta property="og:url" content="{DOMAIN}/{fname}">
 <meta property="og:image" content="{DOMAIN}/{og_img}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{FONTS}">
-<link rel="stylesheet" href="assets/css/site.css">
-<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="site.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 <body>
 {header(current)}
@@ -152,7 +152,7 @@ def page(fname, title, desc, current, body, og_img="assets/img/og-default.jpg"):
 {body}
 </main>
 {footer()}
-<script src="assets/js/site.js" defer></script>
+<script src="site.js" defer></script>
 </body>
 </html>
 """
@@ -405,7 +405,7 @@ def build_home():
     return page("index.html", "AKINTAYO — Website Design for Table Tennis",
                 "Website design, ecommerce and conversion work for the table tennis industry — "
                 "brands, stores, distributors, clubs and coaches. Case study: Table Tennis USA, "
-                "conversion rate 0.72% to 1.56%.", "./", body)
+                "conversion rate 0.72% to 1.56%.", "index.html", body)
 
 
 # ===================================================================== WORK ==
@@ -779,7 +779,7 @@ def build_ttusa():
                 "Shopify UX optimisation and conversion-focused redesign for Table Tennis USA. Conversion rate "
                 "0.72% to 1.26% in the first full month after launch, 1.56% the month after — with orders holding "
                 "steady on 44% fewer visitors.",
-                "work.html", body, og_img="assets/img/og-ttusa.jpg")
+                "work.html", body, og_img="og-ttusa.jpg")
 
 
 # =============================================================== CASE: GEWO ==
@@ -966,7 +966,7 @@ def build_gewo():
                 "Website design for GEWO USA, the US store of a table tennis equipment manufacturer — navigation "
                 "built on equipment taxonomy across 27 subcategories, trust claims only a manufacturer can make, "
                 "and combo specials for customers who don't yet know what to ask for.",
-                "work.html", body, og_img="assets/img/og-gewo.jpg")
+                "work.html", body, og_img="og-gewo.jpg")
 
 
 # ========================================================= CASE: PAUL DAVID ==
@@ -1146,7 +1146,7 @@ def build_paul():
     return page("paul-david.html", "Paul David — Case Study — AKINTAYO",
                 "Website build for table tennis coach Paul David: four services priced in the open, a five-step "
                 "booking path with no form or checkout, and an equipment page that partners students to GEWO USA.",
-                "work.html", body, og_img="assets/img/og-paul.jpg")
+                "work.html", body, og_img="og-paul.jpg")
 
 
 # ================================================================= SERVICES ==
@@ -1515,7 +1515,7 @@ def build_404():
 </section>
 """
     return page("404.html", "Page not found — AKINTAYO",
-                "That page does not exist.", "./", body)
+                "That page does not exist.", "index.html", body)
 
 
 # ==================================================================== EXTRAS ==
@@ -1523,21 +1523,23 @@ def build_extras():
     with open(os.path.join(OUT, "robots.txt"), "w") as f:
         f.write("User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n" % DOMAIN)
 
-    pages = ["", "work.html", "table-tennis-usa.html", "gewo-usa.html",
+    pages = ["index.html", "work.html", "table-tennis-usa.html", "gewo-usa.html",
              "paul-david.html", "services.html", "about.html", "contact.html"]
     urls = "".join(
         '  <url><loc>%s/%s</loc><priority>%s</priority></url>\n' % (
-            DOMAIN, p, "1.0" if p == "" else ("0.9" if "usa" in p or p == "work.html" else "0.8"))
+            DOMAIN, p, "1.0" if p == "index.html" else ("0.9" if "usa" in p or p == "work.html" else "0.8"))
         for p in pages)
     with open(os.path.join(OUT, "sitemap.xml"), "w") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
                 + urls + '</urlset>\n')
 
+    open(os.path.join(OUT, ".nojekyll"), "w").write("")
+
     favicon = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
                '<rect width="32" height="32" fill="#08090b"/>'
                '<circle cx="16" cy="16" r="7" fill="#ff5a1f"/></svg>')
-    with open(os.path.join(OUT, "assets/img/favicon.svg"), "w") as f:
+    with open(os.path.join(OUT, "favicon.svg"), "w") as f:
         f.write(favicon)
 
 
