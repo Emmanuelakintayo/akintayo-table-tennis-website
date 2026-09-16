@@ -29,7 +29,7 @@ Drag this folder onto the deploy area. No build command, no output directory.
 **Any normal host (cPanel, Hostinger, shared hosting)**
 Upload the contents into `public_html`. `index.html` must sit at the top level.
 
-**Check after deploying:** the page has a near-black background and orange accents.
+**Check after deploying:** the page has a near-black background with blue accents.
 If it looks like plain unstyled text, `site.css` is not being found — open the
 browser console, look for a 404, and check the file is really at the same level as
 `index.html`.
@@ -79,7 +79,7 @@ Each case study instead opens with a prominent **"Open the live store"** button.
 With no screenshots, the live sites are the visual proof — and a real site a
 prospect can click through is stronger evidence than a screenshot anyway.
 
-The entire image set is five files, already built and sitting beside the HTML:
+The entire image set is seven files, already built and sitting beside the HTML:
 
 | File | What it is |
 |---|---|
@@ -88,6 +88,8 @@ The entire image set is five files, already built and sitting beside the HTML:
 | `og-gewo.jpg` | Link preview card for the GEWO USA case study |
 | `og-paul.jpg` | Link preview card for the Paul David case study |
 | `favicon.svg` | Browser tab icon |
+| `akintayo.jpg` | Your portrait — the "Built by a real person" section on the home page |
+| `akintayo-seated.jpg` | Your portrait — the personal block on the contact page |
 
 The preview cards are what appear when you paste a link into an email, a message,
 LinkedIn or X. A link with a proper card gets opened noticeably more often than a
@@ -180,25 +182,44 @@ The case studies are built from primary sources, not invention:
 
 ## 6. Design notes
 
-- **Colour** — near-black with a blue bias (`#08090b`, the table surface), white
-  hairline rules (the court markings), and one accent: `#ff5a1f`, the orange of a
-  match ball. One accent used with discipline reads more expensive than three.
-- **Type** — Archivo for display and body, Instrument Serif italic as a rare
-  accent, Martian Mono for labels, data and section numbers. Loaded from Google
-  Fonts; real fallbacks are declared, so the site still looks right if fonts are
-  slow.
-- **Charts** — every chart is plain HTML and CSS. No chart library, no images, no
-  SVG to maintain. To change a figure, change the number in `build.py` and rebuild.
-  Conversion rate, visitors and orders are each drawn on their own scale; two
-  measures are never put on one axis, which is the mistake that makes a chart lie.
-- **Motion** — custom cursor with a "View case" state on project rows, magnetic
-  buttons, a cursor-following stat card on the work lists, line-by-line headline
-  reveals, an orange page-transition wipe between pages, an animated ball
-  trajectory in the hero, and every chart drawing itself as it enters view.
+- **Colour** — the whole identity lives in one block at the top of `site.css`.
+  Change those eight values and the site re-colours:
+
+  ```css
+  --bg: #070B0D;  --bg-secondary: #0D1417;
+  --blue: #155EEF;  --blue-bright: #2563EB;
+  --green: #19D37A; --teal: #08B8A6;
+  --white: #F5F7F6; --muted: #A7B0B0;
+  ```
+
+  Blue is the primary identity: logo dot, section numbers, eyebrows, links,
+  borders, focus rings, the primary CTA. **Green is reserved for growth and
+  results** — the "after" bars on the conversion chart, the delta figures, the
+  live status dot. Teal bridges them and carries button hover states. The
+  gradient `--gradient` is used sparingly: the page-transition wipe, the scroll
+  progress bar, and the hairline edge on the portrait frames.
+
+  One note on contrast: `#155EEF` is 3.6:1 on the dark ground, which is below
+  the 4.5:1 readability threshold for text. So there is a second token,
+  `--accent-text: #5B8DFF` (6.3:1), used **only** where blue becomes type. Fills,
+  bars, borders and buttons still use the exact `#155EEF` you specified.
+
+- **Photographs** — `akintayo.jpg` (home) and `akintayo-seated.jpg` (contact) are
+  your supplied files, downscaled to 1200 × 1800 and nothing else. No filter, no
+  retouching, no overlay sits on either image. The blue-green treatment is
+  entirely on the frame *around* the photo: a soft glow behind it and a hairline
+  gradient border on the edge. Framing is handled by `object-position` in CSS, so
+  changing the crop never means re-exporting the file.
+
+- **Type** — unchanged. Archivo for display and body, Instrument Serif italic as a
+  rare accent, Martian Mono for labels and data.
+- **Charts** — still plain HTML and CSS. No library, no images, no SVG to maintain.
+- **Motion** — unchanged: custom cursor, magnetic buttons, cursor-following stat
+  card, line-by-line headline reveals, page-transition wipe, hero trajectory,
+  charts drawing on scroll.
 - **Everything degrades safely.** All motion is off under `prefers-reduced-motion`,
-  and charts render at full value rather than empty. The custom cursor and hover
-  previews only run on devices with a real pointer. If JavaScript fails entirely,
-  nothing is hidden — the page renders complete.
+  and charts render at full value rather than empty. If JavaScript fails entirely,
+  nothing is hidden.
 
 ## 7. Suggested next steps
 

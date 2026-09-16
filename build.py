@@ -179,6 +179,19 @@ def shead(no, kicker, title, aside=""):
   {a}
 </div>"""
 
+
+def portrait(src, alt, tag=None, cls=""):
+    """The supplied photograph, unmodified. All blue/green treatment sits on
+    the frame around it — never a filter or overlay on the image itself."""
+    t = (f'<span class="portrait__tag"><i></i>{tag}</span>') if tag else ""
+    return f"""<div class="portrait-wrap{(' ' + cls) if cls else ''}" data-reveal>
+  <figure class="portrait">
+    <img src="{src}" alt="{alt}" width="1200" height="1800" loading="lazy" decoding="async">
+    {t}
+  </figure>
+</div>"""
+
+
 PROJECTS = [
     dict(no="01", name="Table Tennis USA", href="table-tennis-usa.html",
          tags=["Ecommerce", "Shopify", "Redesign &amp; CRO"],
@@ -297,7 +310,7 @@ def build_home():
       </div>
       <div class="hero__actions" data-reveal data-onload>
         <a class="btn btn--ghost" href="work.html" data-magnet="0.22"><span>See the work</span>{ARROW}</a>
-        <a class="btn btn--ball" href="{mail()}" data-magnet="0.22"><span>Start a project</span>{ARROW}</a>
+        <a class="btn btn--primary" href="{mail()}" data-magnet="0.22"><span>Start a project</span>{ARROW}</a>
       </div>
     </div>
   </div>
@@ -395,6 +408,39 @@ def build_home():
            ["How a project", "actually runs."],
            "Four stages, in order. Nothing is designed before the catalogue and the buying path are understood.")}
     <div class="steps" data-stagger>{steplist}</div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {shead("06", "The person",
+           ["Built by a real person."],
+           "No account managers, no handoffs, and nobody the work quietly gets passed to after the pitch.")}
+    <div class="person">
+      <div class="person__media">
+        {portrait("akintayo.jpg",
+                  "Akingbehin Akintayo, the designer and developer behind AKINTAYO, in a studio portrait",
+                  tag="Available for projects")}
+      </div>
+      <div class="person__body">
+        <div class="prose" data-reveal data-delay="120">
+          <p>I am Akingbehin Akintayo. When you hire me, I am the person who reads your email, goes through
+          your store, designs the pages and writes the code that ships them. <strong>There is nobody else on
+          the thread and nobody the work gets handed to afterwards.</strong></p>
+          <p>That is a limit as much as a feature &mdash; I take a small number of projects at a time. It is also
+          why the Table Tennis USA work went the way it did: the person who mapped the buying path was the same
+          person who rebuilt it.</p>
+        </div>
+        <div class="creds" data-reveal data-delay="180">
+          <span class="pill">Nigeria &mdash; working worldwide</span>
+          <span class="pill">Shopify &amp; Liquid</span>
+          <span class="pill">Ecommerce UX &amp; CRO</span>
+        </div>
+        <div style="margin-top:clamp(1.6rem,3vw,2.2rem)" data-reveal data-delay="220">
+          <a class="btn btn--ghost" href="about.html" data-magnet="0.22"><span>More about me</span>{ARROW}</a>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1453,6 +1499,32 @@ def build_contact():
   </div>
 </section>
 
+<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
+  <div class="wrap">
+    <div class="contact-person">
+      <div class="contact-person__body">
+        <p class="mono eyebrow" data-reveal="fade">Who answers</p>
+        <h2 class="display h2" data-reveal style="margin-top:1.2rem;max-width:14ch">Let&rsquo;s build something that works.</h2>
+        <div class="prose" data-reveal data-delay="120" style="margin-top:1.4rem">
+          <p>Every email to the address above reaches me, and I answer it myself. No assistant screening
+          enquiries, no discovery call before anyone has looked at your site, and no proposal written by
+          someone who has never opened it.</p>
+          <p>Tell me what you sell and what is going wrong with it. <strong>If I am not the right person for
+          the job, I will say so rather than quote you.</strong></p>
+        </div>
+        <div style="margin-top:clamp(1.6rem,3vw,2.2rem)" data-reveal data-delay="180">
+          <a class="btn btn--primary" href="{mail()}" data-magnet="0.22"><span>Email me directly</span>{ARROW}</a>
+        </div>
+      </div>
+      <div class="contact-person__media">
+        {portrait("akintayo-seated.jpg",
+                  "Akingbehin Akintayo, the designer who will work on your project directly",
+                  tag="Replies come from me")}
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section">
   <div class="wrap">
     <div class="split">
@@ -1465,7 +1537,7 @@ def build_contact():
       <div class="split__r" data-reveal data-delay="120">
         <ul class="checklist">{li}</ul>
         <div style="margin-top:2rem">
-          <a class="btn btn--ball" data-magnet="0.22" href="{mail('Website project enquiry', 'My website: %0D%0AMy business: %0D%0AWhat is not working: %0D%0ATimeline: %0D%0A')}">
+          <a class="btn btn--primary" data-magnet="0.22" href="{mail('Website project enquiry', 'My website: %0D%0AMy business: %0D%0AWhat is not working: %0D%0ATimeline: %0D%0A')}">
             <span>Open a pre-filled email</span>{ARROW}</a>
         </div>
       </div>
@@ -1509,7 +1581,7 @@ def build_404():
     <p class="lead lead--wide" data-onload style="margin-top:2rem">The page you were looking for is not here.</p>
     <div class="hero__actions" style="margin-top:2.4rem;justify-content:flex-start" data-onload>
       <a class="btn btn--ghost" href="./" data-magnet="0.22"><span>Home</span>{ARROW}</a>
-      <a class="btn btn--ball" href="work.html" data-magnet="0.22"><span>See the work</span>{ARROW}</a>
+      <a class="btn btn--primary" href="work.html" data-magnet="0.22"><span>See the work</span>{ARROW}</a>
     </div>
   </div>
 </section>
@@ -1537,8 +1609,8 @@ def build_extras():
     open(os.path.join(OUT, ".nojekyll"), "w").write("")
 
     favicon = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-               '<rect width="32" height="32" fill="#08090b"/>'
-               '<circle cx="16" cy="16" r="7" fill="#ff5a1f"/></svg>')
+               '<rect width="32" height="32" fill="#070B0D"/>'
+               '<circle cx="16" cy="16" r="7" fill="#155EEF"/></svg>')
     with open(os.path.join(OUT, "favicon.svg"), "w") as f:
         f.write(favicon)
 

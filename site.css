@@ -6,38 +6,52 @@
 
 /* --------------------------------------------------------------- 1. Tokens */
 :root {
-  /* Ground — near-black with a faint blue bias (the table surface) */
-  --ink:        #08090b;
-  --ink-2:      #0d0f13;
-  --ink-3:      #14171c;
-  --ink-4:      #1c2028;
+  /* ======================================================================
+     BRAND PALETTE — change these eight values to re-colour the whole site.
+     Blue is the primary identity. Green carries growth and results.
+     Teal bridges the two. Dark is the foundation, white is the content.
+     ====================================================================== */
+  --bg:           #070B0D;
+  --bg-secondary: #0D1417;
+  --blue:         #155EEF;
+  --blue-bright:  #2563EB;
+  --green:        #19D37A;
+  --teal:         #08B8A6;
+  --white:        #F5F7F6;
+  --muted:        #A7B0B0;
 
-  /* Court markings */
-  --line:       rgba(255, 255, 255, .09);
-  --line-2:     rgba(255, 255, 255, .17);
-  --line-3:     rgba(255, 255, 255, .28);
+  --gradient: linear-gradient(135deg, #155EEF 0%, #08B8A6 55%, #19D37A 100%);
 
-  /* Ink on ground */
-  --fg:         #f4f5f7;
-  --fg-2:       #9aa1ac;
-  --fg-3:       #656c78;
+  /* ---------------------------------------------------- derived surfaces */
+  --ink:   var(--bg);
+  --ink-2: var(--bg-secondary);
+  --ink-3: #131C20;
+  --ink-4: #1B262B;
 
-  /* The one accent — a 40mm celluloid ball */
-  --ball:       #ff5a1f;
-  --ball-hi:    #ff7d4d;
-  --ball-lo:    #d93d08;
-  --ball-glow:  rgba(255, 90, 31, .22);
+  /* Hairline rules */
+  --line:   rgba(245, 247, 246, .09);
+  --line-2: rgba(245, 247, 246, .17);
+  --line-3: rgba(245, 247, 246, .30);
+
+  /* -------------------------------------------------------------- ink */
+  --fg:   var(--white);
+  --fg-2: var(--muted);
+  --fg-3: #788585;          /* 5.2:1 on --bg */
+
+  /* ----------------------------------------------------------- accents
+     --accent      fills, borders, bars, buttons
+     --accent-text a lighter tint used wherever blue becomes TEXT, so small
+                   labels clear 4.5:1 on the dark ground (#155EEF alone is
+                   3.6:1 and too low for type)                            */
+  --accent:        var(--blue);
+  --accent-bright: var(--blue-bright);
+  --accent-text:   #5B8DFF;
+  --accent-deep:   #0E45B0;
+  --accent-glow:   rgba(21, 94, 239, .24);
 
   /* Atmosphere only — never used for text or UI */
-  --aura-a:     rgba(78, 44, 214, .20);
-  --aura-b:     rgba(24, 82, 217, .16);
-
-  /* Inverted surfaces (screenshot galleries) */
-  --paper:      #eceef1;
-  --paper-2:    #dfe2e7;
-  --paper-ink:  #0a0b0d;
-  --paper-ink-2:#565d68;
-  --paper-line: rgba(10, 11, 13, .13);
+  --aura-a: rgba(21, 94, 239, .20);
+  --aura-b: rgba(8, 184, 166, .15);
 
   /* Type */
   --display: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -105,16 +119,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 a { color: inherit; text-decoration: none; }
 
 :focus-visible {
-  outline: 2px solid var(--ball);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 2px;
 }
 
-::selection { background: var(--ball); color: #fff; }
+::selection { background: var(--accent); color: #fff; }
 
 .skip {
   position: absolute; left: -9999px; top: 0; z-index: 999;
-  background: var(--ball); color: #fff; padding: .8rem 1.2rem;
+  background: var(--accent); color: #fff; padding: .8rem 1.2rem;
   font-family: var(--mono); font-size: var(--t-mono); letter-spacing: .1em;
   text-transform: uppercase;
 }
@@ -156,7 +170,7 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.5;
   color: var(--fg-3);
 }
-.mono--accent { color: var(--ball); }
+.mono--accent { color: var(--accent-text); }
 .mono--fg { color: var(--fg-2); }
 
 .eyebrow {
@@ -168,7 +182,7 @@ a { color: inherit; text-decoration: none; }
 .eyebrow::before {
   content: "";
   width: 26px; height: 1px;
-  background: var(--ball);
+  background: var(--accent);
   flex: none;
 }
 
@@ -193,7 +207,7 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -.01em;
   line-height: .9;
 }
-.accent { color: var(--ball); }
+.accent { color: var(--accent-text); }
 
 .lead {
   font-size: var(--t-lead);
@@ -235,7 +249,7 @@ a { color: inherit; text-decoration: none; }
 .btn::before {
   content: "";
   position: absolute; inset: 0; z-index: 1;
-  background: var(--ball);
+  background: var(--teal);
   border-radius: inherit;
   transform: scale(0, 1);
   transform-origin: left center;
@@ -249,9 +263,10 @@ a { color: inherit; text-decoration: none; }
   --btn-fg: var(--fg);
   box-shadow: inset 0 0 0 1px var(--line-2);
 }
-.btn--ball { --btn-bg: var(--ball); --btn-fg: #fff; }
-.btn--ball::before { background: var(--fg); }
-.btn--ball:hover, .btn--ball:focus-visible { color: var(--ink); }
+/* Primary CTA: solid blue, easing to teal on hover. */
+.btn--primary { --btn-bg: var(--accent); --btn-fg: #fff; }
+.btn--primary::before { background: var(--teal); }
+.btn--primary:hover, .btn--primary:focus-visible { color: #04211F; }
 
 .btn__arrow {
   width: 9px; height: 9px;
@@ -292,7 +307,7 @@ a { color: inherit; text-decoration: none; }
   border-bottom: 1px solid transparent;
 }
 .nav.is-stuck {
-  background: rgba(8, 9, 11, .78);
+  background: rgba(7, 11, 13, .80);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   border-bottom-color: var(--line);
@@ -324,7 +339,7 @@ a { color: inherit; text-decoration: none; }
 .logo__ball {
   width: 9px; height: 9px;
   border-radius: 50%;
-  background: var(--ball);
+  background: var(--accent);
   flex: none;
   transition: transform .5s var(--ease);
 }
@@ -346,7 +361,7 @@ a { color: inherit; text-decoration: none; }
   content: "";
   position: absolute; left: 0; bottom: 0;
   width: 100%; height: 1px;
-  background: var(--ball);
+  background: var(--accent);
   transform: scaleX(0);
   transform-origin: right center;
   transition: transform .45s var(--ease);
@@ -439,8 +454,8 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
     transition: opacity .25s linear, transform .35s var(--ease);
     white-space: nowrap;
   }
-  .cursor.is-link { width: 58px; height: 58px; margin: -29px 0 0 -29px; background: var(--ball-glow); border-color: transparent; }
-  .cursor.is-view { width: 92px; height: 92px; margin: -46px 0 0 -46px; background: var(--ball); border-color: transparent; }
+  .cursor.is-link { width: 58px; height: 58px; margin: -29px 0 0 -29px; background: var(--accent-glow); border-color: transparent; }
+  .cursor.is-view { width: 92px; height: 92px; margin: -46px 0 0 -46px; background: var(--accent); border-color: transparent; }
   .cursor.is-view .cursor__label { opacity: 1; transform: scale(1); }
   .cursor.is-hidden { opacity: 0; }
   .cursor-dot {
@@ -450,7 +465,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
     width: 4px; height: 4px;
     margin: -2px 0 0 -2px;
     border-radius: 50%;
-    background: var(--ball);
+    background: var(--accent);
     pointer-events: none;
     z-index: 201;
     opacity: 0;
@@ -467,7 +482,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: var(--ball);
+  background: var(--gradient);
   transform: translateY(100%);
   pointer-events: none;
   will-change: transform;
@@ -531,13 +546,13 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   width: 46vw; height: 46vw;
   min-width: 320px; min-height: 320px;
   top: -14vw; right: -8vw;
-  background: var(--ball-glow);
+  background: var(--aura-a);
 }
 .aura::after {
   width: 40vw; height: 40vw;
   min-width: 280px; min-height: 280px;
   bottom: -18vw; left: -10vw;
-  background: var(--aura-a);
+  background: var(--aura-b);
 }
 
 /* Fine grain over the whole page */
@@ -615,24 +630,24 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 .status__dot {
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: #43d17a;
+  background: var(--green);
   flex: none;
-  box-shadow: 0 0 0 0 rgba(67, 209, 122, .6);
+  box-shadow: 0 0 0 0 rgba(25, 211, 122, .6);
   animation: pulse 2.6s var(--ease-io) infinite;
 }
 @keyframes pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(67, 209, 122, .55); }
-  70%  { box-shadow: 0 0 0 7px rgba(67, 209, 122, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(67, 209, 122, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(25, 211, 122, .55); }
+  70%  { box-shadow: 0 0 0 7px rgba(25, 211, 122, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(25, 211, 122, 0); }
 }
 
 /* The ball arc drawn behind the hero */
 .arc { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .arc svg { position: absolute; right: -6%; top: 4%; width: min(60vw, 780px); height: auto; opacity: .55; }
-.arc path { fill: none; stroke: var(--ball); stroke-width: 1.25; stroke-dasharray: 1400; stroke-dashoffset: 1400; }
+.arc path { fill: none; stroke: var(--accent); stroke-width: 1.25; stroke-dasharray: 1400; stroke-dashoffset: 1400; }
 .anim .arc.is-in path { animation: draw 2.6s var(--ease) .3s forwards; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
-.arc circle { fill: var(--ball); transform-box: fill-box; transform-origin: center; }
+.arc circle { fill: var(--accent); transform-box: fill-box; transform-origin: center; }
 .anim .arc circle { opacity: 0; }
 .anim .arc.is-in circle { animation: pop .5s var(--ease) 2.3s forwards; }
 @keyframes pop { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
@@ -665,7 +680,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   font-variant-numeric: tabular-nums;
   color: var(--fg-3);
 }
-.fig--now { color: var(--ball); }
+.fig--now { color: var(--green); }
 .fig__sep { color: var(--fg-3); font-size: .7em; }
 
 /* ------------------------------------------------------- 13. Section head */
@@ -695,7 +710,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(255, 90, 31, .1), transparent 62%);
+  background: linear-gradient(90deg, rgba(21, 94, 239, .12), transparent 62%);
   opacity: 0;
   transition: opacity .5s var(--ease);
 }
@@ -725,7 +740,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   line-height: 1;
   transition: color .4s var(--ease);
 }
-.workrow:hover .workrow__title { color: var(--ball); }
+.workrow:hover .workrow__title { color: var(--accent-text); }
 
 .tag {
   font-family: var(--mono);
@@ -777,15 +792,15 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   position: absolute;
   left: 0; right: 0; top: 0;
   height: 2px;
-  background: var(--ball);
+  background: var(--accent);
 }
-.peek__stat {
+.peek__stat { /* growth figure */
   font-family: var(--display);
   font-weight: 800;
   font-size: clamp(1.9rem, 3.2vw, 2.7rem);
   letter-spacing: -.05em;
   line-height: 1;
-  color: var(--ball);
+  color: var(--green);
   font-variant-numeric: tabular-nums;
 }
 .peek__sub {
@@ -823,7 +838,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   position: absolute;
   left: 0; right: 0; top: 0;
   height: 2px;
-  background: var(--ball);
+  background: var(--accent);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform .6s var(--ease);
@@ -850,7 +865,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   gap: 1rem;
   align-items: flex-start;
 }
-.seg__i { color: var(--ball); font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; padding-top: .35rem; }
+.seg__i { color: var(--accent-text); font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; padding-top: .35rem; }
 .seg__t { font-size: var(--t-h4); font-weight: 600; letter-spacing: -.025em; line-height: 1.2; }
 .seg__d { color: var(--fg-3); font-size: var(--t-small); margin-top: .3rem; max-width: 30ch; }
 
@@ -885,7 +900,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 .marquee__item i {
   width: 7px; height: 7px;
   border-radius: 50%;
-  background: var(--ball);
+  background: var(--accent);
   flex: none;
 }
 @keyframes slide { to { transform: translateX(-50%); } }
@@ -900,7 +915,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   border-bottom: 1px solid var(--line);
   align-items: baseline;
 }
-.step__no { grid-column: 1 / span 2; color: var(--ball); }
+.step__no { grid-column: 1 / span 2; color: var(--accent-text); }
 .step__t  { grid-column: 3 / span 4; font-size: var(--t-h3); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; }
 .step__d  { grid-column: 8 / span 5; color: var(--fg-2); }
 
@@ -924,7 +939,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 }
 .meta__item { grid-column: span 2; display: flex; flex-direction: column; gap: .5rem; }
 .meta__item dd { font-size: var(--t-small); color: var(--fg); font-weight: 500; line-height: 1.4; }
-.meta__item dd a { color: var(--ball); }
+.meta__item dd a { color: var(--accent-text); }
 
 /* Sticky rail narrative */
 .rail {
@@ -938,7 +953,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 .rail__main > * + * { margin-top: clamp(2.4rem, 4.6vw, 4rem); }
 
 .beat__h { font-size: var(--t-h3); font-weight: 700; letter-spacing: -.03em; line-height: 1.12; margin-bottom: .9rem; display: flex; gap: .9rem; align-items: baseline; }
-.beat__h i { font-family: var(--mono); font-size: .62rem; font-style: normal; letter-spacing: .12em; color: var(--ball); flex: none; }
+.beat__h i { font-family: var(--mono); font-size: .62rem; font-style: normal; letter-spacing: .12em; color: var(--accent-text); flex: none; }
 
 /* Facts list */
 .facts { border-top: 1px solid var(--line); }
@@ -1002,10 +1017,10 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   margin-bottom: .7rem;
   color: var(--fg-2);
 }
-.bar--now .bar__val { color: var(--ball); }
+.bar--now .bar__val { color: var(--green); }
 .bar__col {
   width: 100%;
-  background: rgba(255, 255, 255, .13);
+  background: rgba(245, 247, 246, .12);
   border-radius: 4px 4px 0 0;
   height: var(--h, 0%);
   transform-origin: bottom center;
@@ -1013,7 +1028,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 }
 .anim .bar__col { height: 0; }
 .anim .bars.is-in .bar__col { height: var(--h, 0%); }
-.bar--now .bar__col { background: var(--ball); }
+.bar--now .bar__col { background: var(--green); }
 .bar__x {
   font-family: var(--mono);
   font-size: var(--t-mono);
@@ -1033,9 +1048,9 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   gap: .6rem;
   padding: .5rem .9rem;
   border-radius: 999px;
-  background: rgba(255, 90, 31, .12);
-  box-shadow: inset 0 0 0 1px rgba(255, 90, 31, .3);
-  color: var(--ball);
+  background: rgba(25, 211, 122, .12);
+  box-shadow: inset 0 0 0 1px rgba(25, 211, 122, .32);
+  color: var(--green);
   font-family: var(--mono);
   font-size: var(--t-mono);
   letter-spacing: .1em;
@@ -1065,7 +1080,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   line-height: .95;
   transition: color .45s var(--ease), transform .7s var(--ease);
 }
-.next:hover .next__t { color: var(--ball); transform: translateX(clamp(6px, 1.4vw, 22px)); }
+.next:hover .next__t { color: var(--accent-text); transform: translateX(clamp(6px, 1.4vw, 22px)); }
 
 .cta { position: relative; overflow: hidden; background: var(--ink-2); border-top: 1px solid var(--line); }
 .cta__mail {
@@ -1085,12 +1100,12 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   position: absolute;
   left: 0; bottom: 0;
   width: 100%; height: 2px;
-  background: var(--ball);
+  background: var(--accent);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform .7s var(--ease);
 }
-.cta__mail:hover { color: var(--ball); }
+.cta__mail:hover { color: var(--accent-text); }
 .cta__mail:hover::after { transform: scaleX(1); }
 
 /* ------------------------------------------------------------ 22. Footer */
@@ -1106,7 +1121,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 .foot__col:nth-of-type(2) { grid-column: 7 / span 2; }
 .foot__mail { grid-column: 10 / span 3; display: flex; flex-direction: column; gap: .7rem; align-items: flex-start; }
 .foot__link { font-size: var(--t-small); color: var(--fg-2); transition: color .3s var(--ease), padding-left .35s var(--ease); }
-.foot__link:hover { color: var(--ball); padding-left: 5px; }
+.foot__link:hover { color: var(--accent-text); padding-left: 5px; }
 .foot__bar {
   display: flex;
   justify-content: space-between;
@@ -1137,7 +1152,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   width: 100%;
   transform: scaleX(0);
   transform-origin: left center;
-  background: var(--ball);
+  background: var(--gradient);
   z-index: 95;
 }
 
@@ -1173,7 +1188,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   content: "";
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: var(--ball);
+  background: var(--accent);
   flex: none;
   margin-top: .62em;
 }
@@ -1305,7 +1320,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   border-bottom: 1px solid var(--line);
   align-items: start;
 }
-.svc__no { grid-column: 1 / span 1; color: var(--ball); }
+.svc__no { grid-column: 1 / span 1; color: var(--accent-text); }
 .svc__head { grid-column: 2 / span 4; }
 .svc__body { grid-column: 7 / span 3; }
 .svc__list { grid-column: 10 / span 3; }
@@ -1319,7 +1334,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   display: flex;
   gap: .7rem;
 }
-.svc__list li::before { content: "—"; color: var(--ball); flex: none; }
+.svc__list li::before { content: "—"; color: var(--accent); flex: none; }
 
 @media (max-width: 1100px) {
   .svc__no { grid-column: 1 / span 12; }
@@ -1351,7 +1366,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 .caveat {
   background: var(--ink-3);
   border: 1px solid var(--line);
-  border-left: 2px solid var(--ball);
+  border-left: 2px solid var(--accent);
   padding: clamp(1.2rem, 2.2vw, 1.8rem);
 }
 .caveat p { color: var(--fg-2); max-width: 58ch; }
@@ -1384,8 +1399,8 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 .dtable td { color: var(--fg-2); }
 .dtable td:first-child { color: var(--fg); font-weight: 500; }
 .dtable .num { text-align: right; padding-right: 0; }
-.dtable .hl { color: var(--ball); font-weight: 600; }
-.dtable tr.is-split td { border-bottom-color: var(--ball); }
+.dtable .hl { color: var(--green); font-weight: 600; }
+.dtable tr.is-split td { border-bottom-color: var(--accent); }
 .dtable .phase {
   font-family: var(--mono);
   font-size: .54rem;
@@ -1413,13 +1428,13 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   font-size: .52rem;
   letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--ball);
+  color: var(--green);
   background: var(--ink-2);
   padding: 0 .55rem;
 }
 .chartfig--marked { padding-top: 2.2rem; }
-.bar--after .bar__col { background: var(--ball); }
-.bar--after .bar__val { color: var(--ball); }
+.bar--after .bar__col { background: var(--green); }
+.bar--after .bar__val { color: var(--green); }
 
 /* ------------------------------------------------------ 33. Problem grid */
 .probs {
@@ -1443,7 +1458,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   font-style: normal;
   font-size: .56rem;
   letter-spacing: .1em;
-  color: var(--ball);
+  color: var(--accent-text);
   padding-top: .3em;
   flex: none;
 }
@@ -1458,7 +1473,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   display: flex;
   gap: .7rem;
 }
-.slist li::before { content: "+"; color: var(--ball); flex: none; }
+.slist li::before { content: "+"; color: var(--accent); flex: none; }
 
 /* ----------------------------------------------------------- 35. Stat row */
 .statrow {
@@ -1477,7 +1492,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   font-variant-numeric: tabular-nums;
 }
 .stat__l { margin-top: .65rem; }
-.stat--hl .stat__v { color: var(--ball); }
+.stat--hl .stat__v { color: var(--green); }
 
 /* --------------------------------------------------- 36. Human / off-clock */
 .human {
@@ -1549,12 +1564,12 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   color: var(--fg-2);
   text-align: right;
 }
-.hbar__track { height: 22px; background: rgba(255, 255, 255, .05); position: relative; border-radius: 2px; }
+.hbar__track { height: 22px; background: rgba(245, 247, 246, .05); position: relative; border-radius: 2px; }
 .hbar__fill {
   position: absolute;
   inset: 0 auto 0 0;
   width: var(--w, 0%);
-  background: var(--ball);
+  background: var(--accent);
   border-radius: 2px;
   transform-origin: left center;
   transition: width 1.05s var(--ease) var(--d, 0s);
@@ -1595,7 +1610,7 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   font-family: var(--mono);
   font-size: .54rem;
   letter-spacing: .12em;
-  color: var(--ball);
+  color: var(--accent-text);
   flex: none;
 }
 .branch ul { margin-top: .7rem; display: flex; flex-direction: column; gap: .05rem; }
@@ -1640,17 +1655,17 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   right: clamp(.5rem, 1vw, .8rem);
   top: 50%;
   width: 7px; height: 7px;
-  border-top: 1px solid var(--ball);
-  border-right: 1px solid var(--ball);
+  border-top: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
   transform: translateY(-50%) rotate(45deg);
 }
 .fstep:last-child::after { display: none; }
-.fstep:last-child { border-bottom-color: var(--ball); }
+.fstep:last-child { border-bottom-color: var(--accent); }
 .fstep__n {
   font-family: var(--mono);
   font-size: .54rem;
   letter-spacing: .12em;
-  color: var(--ball);
+  color: var(--accent-text);
 }
 .fstep__t { font-size: var(--t-h4); font-weight: 600; letter-spacing: -.02em; line-height: 1.2; margin-top: .6rem; }
 .fstep__d { font-size: var(--t-small); color: var(--fg-3); margin-top: .5rem; }
@@ -1674,4 +1689,135 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
   .fstep::after { right: auto; left: 0; top: auto; bottom: -4px; transform: rotate(135deg); }
   .hbar { grid-template-columns: minmax(78px, 110px) minmax(0, 1fr) auto; }
   .hbar__k { font-size: .52rem; }
+}
+
+/* ==================================================== 42. Portrait framing
+   The photograph is presented unaltered: no overlay sits on top of it, no
+   filter is applied to it. The blue-green treatment lives entirely OUTSIDE
+   the image — a glow behind the frame and a hairline gradient border on the
+   frame edge — so the photo itself stays a photo. */
+.portrait-wrap {
+  position: relative;
+  /* Clips the decorative glow horizontally so it can never widen the
+     document; vertical bleed is unaffected. */
+  overflow-x: clip;
+}
+.portrait-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -12% 0 -8%;
+  background: radial-gradient(52% 52% at 50% 42%, var(--accent-glow), transparent 72%);
+  filter: blur(46px);
+  pointer-events: none;
+}
+
+.portrait {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ink-3);
+  aspect-ratio: 4 / 5;
+}
+.portrait::after {
+  /* Hairline gradient edge, drawn on the frame — not over the photograph. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  opacity: .5;
+  pointer-events: none;
+  transition: opacity .5s var(--ease);
+}
+.portrait:hover::after { opacity: .9; }
+.portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 16%;   /* keeps the face framed at every ratio */
+}
+
+.portrait__tag {
+  position: absolute;
+  left: 0; bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin: .9rem;
+  padding: .45rem .8rem;
+  border-radius: 999px;
+  background: rgba(7, 11, 13, .74);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  font-family: var(--mono);
+  font-size: .54rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+.portrait__tag i {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  flex: none;
+}
+
+/* ------------------------------------- 43. "Built by a real person" block */
+.person {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(1.8rem, 4vw, 4rem);
+  align-items: center;
+}
+.person__media { grid-column: 1 / span 5; }
+.person__body  { grid-column: 7 / span 6; }
+.person__body .prose p { max-width: 52ch; }
+
+.creds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-top: clamp(1.4rem, 2.6vw, 2rem);
+}
+
+/* ------------------------------------------- 44. Contact personal block */
+.contact-person {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(1.8rem, 4vw, 4rem);
+  align-items: center;
+}
+.contact-person__body  { grid-column: 1 / span 6; }
+.contact-person__media { grid-column: 8 / span 5; }
+.contact-person .portrait { aspect-ratio: 3 / 4; }
+
+@media (max-width: 1100px) {
+  .person__media { grid-column: 1 / span 5; }
+  .person__body  { grid-column: 6 / span 7; }
+  .contact-person__body  { grid-column: 1 / span 7; }
+  .contact-person__media { grid-column: 8 / span 5; }
+}
+
+@media (max-width: 860px) {
+  .person__media, .person__body,
+  .contact-person__body, .contact-person__media { grid-column: 1 / span 12; }
+  /* Photo first on the contact page, copy first on the home page. */
+  .contact-person__media { grid-row: 1; }
+  .person__media, .contact-person__media { max-width: 400px; }
+  .portrait, .contact-person .portrait { aspect-ratio: 4 / 5; }
+  .portrait img { object-position: center 14%; }
+  /* Vertical bleed only: a negative horizontal inset here pushes past the
+     page gutter on a narrow screen and widens the document. */
+  .portrait-wrap::before { inset: -8% 0 -6%; filter: blur(34px); }
 }
