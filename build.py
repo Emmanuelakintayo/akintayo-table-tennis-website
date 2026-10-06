@@ -180,27 +180,62 @@ def shead(no, kicker, title, aside=""):
 </div>"""
 
 
-def portrait(src, alt, tag=None, cls=""):
+def portrait(src, alt, tag=None, cls="", eager=False):
     """The supplied photograph, unmodified. All blue/green treatment sits on
     the frame around it — never a filter or overlay on the image itself."""
     t = (f'<span class="portrait__tag"><i></i>{tag}</span>') if tag else ""
-    return f"""<div class="portrait-wrap{(' ' + cls) if cls else ''}" data-reveal>
+    # Above the fold the photograph must not lazy-load, or the page opens on a hole.
+    ld = 'fetchpriority="high" decoding="async"' if eager else 'loading="lazy" decoding="async"'
+    rv = '' if eager else ' data-reveal'
+    return f"""<div class="portrait-wrap{(' ' + cls) if cls else ''}"{rv}>
   <figure class="portrait">
-    <img src="{src}" alt="{alt}" width="1200" height="1800" loading="lazy" decoding="async">
+    <img src="{src}" alt="{alt}" width="1200" height="1800" {ld}>
     {t}
   </figure>
 </div>"""
 
 
+def shot(src, cap, w, h, url=None, cls=""):
+    """A real screenshot, presented as evidence. The brand treatment is on the
+    frame only; the image itself is never filtered, tinted or overlaid, so what
+    a visitor sees is what the client's analytics or storefront actually showed.
+    A chrome bar is added only for captures of live websites."""
+    bar = ('<div class="shot__bar"><span class="shot__dots"><i></i><i></i><i></i></span>'
+           f'<span class="shot__url">{url}</span></div>') if url else ""
+    c = (" " + cls) if cls else ""
+    return f"""<figure class="shot{c}" data-reveal>
+  <div class="shot__frame">{bar}<img src="{src}" alt="{cap}" width="{w}" height="{h}" loading="lazy" decoding="async"></div>
+  <figcaption class="shot__cap">{cap}</figcaption>
+</figure>"""
+
+def shotgrid(*shots, cls=""):
+    c = (" " + cls) if cls else ""
+    return f'<div class="shotgrid{c}" data-stagger>{"".join(shots)}</div>'
+
+def receipts(*shots):
+    return f'<div class="receipts" data-stagger>{"".join(shots)}</div>'
+
+def funnel(rows):
+    """rows = [(stage, value, note, pct_of_sessions, is_final), ...]"""
+    out = ""
+    for i, (k, v, note, pct, end) in enumerate(rows):
+        cls = " funnel__row--end" if end else ""
+        out += (f'<div class="funnel__row{cls}"><p class="funnel__k">{k}</p>'
+                f'<div class="funnel__track"><span class="funnel__fill" '
+                f'style="--w:{pct}%;--d:{i * .12:.2f}s"></span></div>'
+                f'<p class="funnel__v">{v}<small>{note}</small></p></div>')
+    return f'<div class="funnel" data-reveal>{out}</div>'
+
+
 PROJECTS = [
     dict(no="01", name="Table Tennis USA", href="table-tennis-usa.html",
          tags=["Ecommerce", "Shopify", "Redesign &amp; CRO"],
-         res="0.72% &rarr; 1.56% conversion rate",
-         stat="1.56%", sub="Conversion rate in February — from 0.72% before the redesign", live="tabletennisstore.us"),
+         res="0.68% &rarr; 2.24% conversion rate",
+         stat="2.24%", sub="Conversion rate, latest 30 days — from 0.68% at the August low", live="tabletennisstore.us"),
     dict(no="02", name="GEWO USA", href="gewo-usa.html",
          tags=["Ecommerce", "Shopify", "Manufacturer store"],
-         res="Multi-category equipment store",
-         stat="196", sub="Products across 7 collections, 27 nested subcategories", live="gewousa.com"),
+         res="1.2s largest paint, zero layout shift",
+         stat="1201ms", sub="Largest Contentful Paint, 75th percentile — rated Good", live="gewousa.com"),
     dict(no="03", name="Paul David", href="paul-david.html",
          tags=["Coaching practice", "Services &amp; booking"],
          res="Four services, one booking path",
@@ -276,10 +311,10 @@ def build_home():
 </div>""" for i, (t, d) in enumerate(segments))
 
     steps = [
-        ("01", "Learn the catalogue", "Before anything is designed, I go through what you sell and how it is organised — brands, categories, specifications, price bands, the things customers ask about before they buy."),
-        ("02", "Map the buying path", "The route from landing page to completed order, written out step by step, with the points where people stall marked on it."),
-        ("03", "Design and build", "Design that follows that map, then a working site. Not a concept file handed over for someone else to interpret."),
-        ("04", "Measure and refine", "Conversion rate and behaviour after launch, and changes made on the basis of what the numbers show rather than what looks better."),
+        ("01", "Learn the catalogue", "What you sell and how it is organised: brands, categories, specifications, price bands."),
+        ("02", "Map the buying path", "Landing page to completed order, written out, with the stalling points marked."),
+        ("03", "Design and build", "A working site, not a concept file for someone else to interpret."),
+        ("04", "Measure and refine", "Changes made on what the numbers show rather than what looks better."),
     ]
     steplist = "".join(f"""<div class="step" data-reveal>
   <p class="step__no mono mono--accent">{n}</p>
@@ -321,14 +356,14 @@ def build_home():
     <a class="proof__link" href="table-tennis-usa.html" data-cursor="Case study">
       <div class="proof__k">
         <p class="mono mono--accent">Flagship project</p>
-        <p class="mono">Table Tennis USA &mdash; conversion rate, before and after the redesign</p>
+        <p class="mono">Table Tennis Store &mdash; conversion rate, August to October 2026</p>
       </div>
       <div class="proof__figs">
-        <span class="fig">0.72%</span><span class="fig fig__sep">&rarr;</span>
-        <span class="fig">1.26%</span><span class="fig fig__sep">&rarr;</span>
-        <span class="fig fig--now">1.56%</span>
+        <span class="fig">0.68%</span><span class="fig fig__sep">&rarr;</span>
+        <span class="fig">1.95%</span><span class="fig fig__sep">&rarr;</span>
+        <span class="fig fig--now">2.24%</span>
       </div>
-      <p class="proof__go mono mono--fg">+75% in the first<br>month &mdash; read it &rarr;</p>
+      <p class="proof__go mono mono--fg">Screenshots attached<br>&mdash; read it &rarr;</p>
     </a>
   </div>
 </section>
@@ -337,24 +372,21 @@ def build_home():
   <div class="wrap">
     {shead("01", "Positioning",
            ["A generalist spends your first", "month learning this market.", "I already know it."],
-           "Table tennis is a specialist catalogue sold to specialist buyers. The websites that work in it are built by someone who understands what is being sold.")}
+           "A specialist catalogue sold to specialist buyers.")}
     <div class="split">
       <div class="split__l prose" data-reveal>
-        <p>A customer buying a blade is comparing ply counts, speed and control ratings, handle shapes and weight.
-        A customer buying rubber is choosing between inverted, short pips, long pips and anti-spin, then a sponge
-        thickness, then checking whether it is ITTF approved. A club is ordering tables and nets in volume.
-        A coach is not selling a product at all &mdash; they are selling a time slot.</p>
-        <p><strong>That detail is the whole job.</strong> It decides how a catalogue is structured, what a product page
-        has to show before a customer scrolls, which filters matter, and where a buyer hesitates. I have worked
-        inside three table tennis businesses &mdash; two ecommerce stores and one coaching practice.</p>
+        <p>Someone buying rubber is choosing between inverted, short pips, long pips and anti-spin, then sponge
+        thickness, then ITTF approval. A coach is not selling a product at all, but a time slot.</p>
+        <p><strong>That detail is the whole job.</strong> It decides how a catalogue is structured, which filters
+        matter, and where a buyer hesitates.</p>
       </div>
       <div class="split__r" data-reveal data-delay="120">
         <p class="mono" style="margin-bottom:1.2rem">What that changes in practice</p>
         <ul class="checklist">
-          <li>Category structure that follows how players shop &mdash; by equipment type and play style, not by brand alone.</li>
-          <li>Product pages built around the specifications buyers actually compare, not around a paragraph of description.</li>
-          <li>Filtering that survives pips, sponge thickness, speed and control ratings without turning into a dead end.</li>
-          <li>Service and booking paths for coaches, clubs and events, where there is no cart and never should be.</li>
+          <li>Category structure that follows how players shop, not by brand alone.</li>
+          <li>Product pages built around the specifications buyers compare.</li>
+          <li>Filtering that survives pips, sponge thickness and speed ratings without dead ends.</li>
+          <li>Booking paths for coaches and clubs, where there is no cart and never should be.</li>
         </ul>
       </div>
     </div>
@@ -424,15 +456,12 @@ def build_home():
       </div>
       <div class="person__body">
         <div class="prose" data-reveal data-delay="120">
-          <p>I am Akingbehin Akintayo. When you hire me, I am the person who reads your email, goes through
-          your store, designs the pages and writes the code that ships them. <strong>There is nobody else on
-          the thread and nobody the work gets handed to afterwards.</strong></p>
-          <p>That is a limit as much as a feature &mdash; I take a small number of projects at a time. It is also
-          why the Table Tennis USA work went the way it did: the person who mapped the buying path was the same
-          person who rebuilt it.</p>
+          <p>I am Akingbehin Akintayo. I read your email, go through your store, design the pages and write the
+          code that ships them. <strong>Nobody else is on the thread.</strong></p>
+          <p>On Table Tennis Store, the person who mapped the buying path was the same person who rebuilt it.</p>
         </div>
         <div class="creds" data-reveal data-delay="180">
-          <span class="pill">Nigeria &mdash; working worldwide</span>
+          <span class="pill">Osun State, Nigeria &mdash; working worldwide</span>
           <span class="pill">Shopify &amp; Liquid</span>
           <span class="pill">Ecommerce UX &amp; CRO</span>
         </div>
@@ -451,7 +480,7 @@ def build_home():
     return page("index.html", "AKINTAYO — Website Design for Table Tennis",
                 "Website design, ecommerce and conversion work for the table tennis industry — "
                 "brands, stores, distributors, clubs and coaches. Case study: Table Tennis USA, "
-                "conversion rate 0.72% to 1.56%.", "index.html", body)
+                "conversion rate 0.68% to 2.24%, with the analytics screenshots attached.", "index.html", body)
 
 
 # ===================================================================== WORK ==
@@ -488,12 +517,9 @@ def build_work():
         <h2 class="bigquote" style="margin-top:1.2rem">Only one of these projects has published numbers. I say so on the other two.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>Table Tennis USA has four consecutive months of recorded analytics &mdash; two before the redesign and two
-        after it &mdash; and all four are on the case study page, including the month traffic fell. The GEWO USA and
-        Paul David projects have no performance data I can publish, so none is claimed for them.</p>
-        <p>What those two show instead is design reasoning across different problems: a manufacturer-owned store
-        that has to be brand and shop at once, and a coaching practice with no cart at all. <strong>A portfolio is
-        worth more when you can trust the parts that are not flattering.</strong></p>
+        <p>Table Tennis Store has four consecutive periods of analytics, screenshots attached, including the two
+        months it was falling. GEWO USA has speed data but no conversion data. Paul David has neither, and says so.</p>
+        <p><strong>A portfolio is worth more when you can trust the parts that are not flattering.</strong></p>
       </div>
     </div>
   </div>
@@ -529,15 +555,12 @@ def flow(steps):
 
 def build_ttusa():
     problems = [
-        "Homepage lacked a clear conversion-focused layout",
-        "Product discovery was limited for brand-loyal players",
-        "Trust signals were weak on key pages",
-        "Product pages had layout inconsistencies",
-        "Variant selection for equipment was unclear",
-        "Navigation breadcrumbs were incorrect",
-        "Video content redirected users away from the store",
-        "Email exposure created spam risk",
-        "SEO heading structure needed correction",
+        "No conversion-focused homepage layout",
+        "Weak product discovery for brand-loyal players",
+        "Thin trust signals on the pages that needed them",
+        "Unclear variant selection on equipment",
+        "Shipping cost arriving as a surprise at checkout",
+        "Broken breadcrumbs and SEO heading structure",
     ]
     probs = "".join(
         f'<div class="prob" data-reveal="fade"><i>{i+1:02d}</i><span>{t}</span></div>'
@@ -550,14 +573,14 @@ def build_ttusa():
 
     sol = [
         ("Homepage structure",
-         "The homepage was rebuilt to move a visitor through the store instead of leaving them to work it out.",
+         "Rebuilt to move a visitor through the store instead of leaving them to work it out.",
          ["Hero section", "Trust bar", "Brand discovery", "Featured products", "New arrivals"]),
         ("Trust signals",
-         "A trust section was placed early on the homepage, where hesitation actually happens, rather than buried in a policy page.",
+         "Placed early, where hesitation happens, rather than buried in a policy page.",
          ["Authentic global table tennis brands", "Professional quality equipment",
           "Secure checkout", "Trusted by players"]),
         ("Product page improvements",
-         "Equipment pages were reworked around the moment of decision &mdash; comparing specifications, then committing.",
+         "Reworked around the moment of decision: compare the specification, then commit.",
          ["Clearer layout and spacing", "Improved product image presentation",
           "Trust messaging under the product price", "Improved quantity selector and purchase area"]),
     ]
@@ -579,9 +602,10 @@ def build_ttusa():
         ("New arrivals", "A reason for returning customers to look again."),
     ])
 
-    # Conversion rate, four consecutive months. Scale 0 - 2.00%, gridline at 1.00%.
-    data = [("Nov", "0.66%", 33, "before"), ("Dec", "0.72%", 36, "before"),
-            ("Jan", "1.26%", 63, "after"),  ("Feb", "1.56%", 78, "after")]
+    # Conversion rate, four consecutive periods as recorded in Shopify.
+    # Scale 0 - 2.50%, gridline at 1.25%. Heights are proportional to that scale.
+    data = [("Jul", "1.43%", 57, "before"), ("Aug", "0.68%", 27, "before"),
+            ("Sep", "1.95%", 78, "after"),  ("Oct", "2.24%", 90, "after")]
     bars = ""
     for i, (m, v, h, phase) in enumerate(data):
         bars += f"""<div class="bar bar--{phase}">
@@ -590,45 +614,34 @@ def build_ttusa():
   <span class="bar__x">{m}</span>
 </div>"""
 
-    # Two single-series small multiples. Separate charts, separate scales — never
-    # two measures on one axis.
-    def mini(cap, rows):
-        b = ""
-        for i, (m, v, h, phase) in enumerate(rows):
-            b += f"""<div class="bar bar--{phase}">
-  <p class="bar__val">{v}</p>
-  <div class="bar__col" style="--h:{h}%;--d:{i*160}ms"></div>
-  <span class="bar__x">{m}</span>
-</div>"""
-        return f"""<div class="mini" data-reveal="fade">
-  <p class="mini__cap">{cap}</p>
-  <div class="bars bars--two">{b}</div>
-</div>"""
-
-    minis = (mini("Visitors &mdash; December vs January",
-                  [("Dec", "36.8k", 100, "before"), ("Jan", "20.5k", 56, "after")]) +
-             mini("Orders &mdash; December vs January",
-                  [("Dec", "686", 100, "before"), ("Jan", "669", 98, "after")]))
+    # July's funnel — the diagnosis. Each bar is that step's conversion from the
+    # step immediately before it, which is how a funnel is read. Absolute counts
+    # are the figures Shopify recorded.
+    julyfunnel = funnel([
+        ("Sessions",           "16,349", "all traffic",        100,  False),
+        ("Added to cart",      "899",    "5.5% of sessions",   5.5,  False),
+        ("Reached checkout",   "466",    "52% of those carts", 52,   False),
+        ("Completed checkout", "234",    "50% of checkouts",   50,   True),
+    ])
 
     rows = [
-        ("Nov 1&ndash;30", "Before", "39.4k", "0.66%", "&mdash;", False),
-        ("Dec 1&ndash;30", "Before", "36.8k", "0.72%", "686", True),
-        ("Jan 1&ndash;30", "After", "20.5k", "1.26%", "669", False),
-        ("Feb 1&ndash;28", "After", "16.8k", "1.56%", "&mdash;", False),
+        ("Jul 1&ndash;31, 2026",    "Before", "1.43%", "&minus;31%", False),
+        ("Aug 1&ndash;31, 2026",    "Before", "0.68%", "&minus;52%", True),
+        ("Sep 1&ndash;30, 2026",    "After",  "1.95%", "+191%",      False),
+        ("Sep 5&ndash;Oct 5, 2026", "After",  "2.24%", "+190%",      False),
     ]
     trows = ""
-    for period, phase, vis, cvr, orders, split in rows:
+    for period, phase, cvr, delta, split in rows:
         cls = ' class="is-split"' if split else ""
         hl = ' class="num hl"' if phase == "After" else ' class="num"'
         trows += (f'<tr{cls}><td>{period}</td><td class="phase">{phase}</td>'
-                  f'<td class="num">{vis}</td><td{hl}>{cvr}</td>'
-                  f'<td class="num">{orders}</td></tr>')
+                  f'<td{hl}>{cvr}</td><td class="num">{delta}</td></tr>')
 
     stats = [
-        ("+75%", "Conversion rate, December to January &mdash; the first full month after launch", True),
-        ("+117%", "Conversion rate, December to February", False),
-        ("&minus;44%", "Visitors over the same period, December to January", False),
-        ("&minus;2.5%", "Orders over that period &mdash; 686 to 669", False),
+        ("2.24%", "Conversion rate, 5 September to 5 October 2026", True),
+        ("+190%", "Against the previous thirty days, as Shopify reports it", False),
+        ("5.5%", "Share of July sessions that ever reached a cart &mdash; the leak the work targeted", False),
+        ("$75", "Free shipping threshold the new cart progress bar counts toward", False),
     ]
     statrow = "".join(
         f"""<div class="stat{' stat--hl' if hl else ''}" data-reveal>
@@ -645,10 +658,9 @@ def build_ttusa():
     </div>
     <div class="hero__body">
       <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>A Shopify store selling professional table tennis equipment &mdash;
-        blades, rubbers and accessories from global brands. I handled the UX restructuring, theme customisation
-        and conversion work. Conversion rate went from 0.72% to 1.26% in the first full month after launch,
-        and to 1.56% the month after that.</p>
+        <p class="lead lead--wide" data-reveal data-onload>A Shopify store selling table tennis equipment across
+        the United States. It was sliding when I came in, bottomed at <strong>0.68%</strong> in August 2026, and the
+        latest thirty days sit at <strong>2.24%</strong>. Every figure here has its screenshot attached.</p>
       </div>
     </div>
     {livebtn("https://tabletennisstore.us/", "Open the live store")}
@@ -658,7 +670,7 @@ def build_ttusa():
         ("Platform", "Shopify"),
         ("Role", "UX design, theme customisation, CRO, SEO"),
         ("Live site", '<a href="https://tabletennisstore.us/" target="_blank" rel="noopener">tabletennisstore.us &#8599;</a>'),
-        ("Measured", "4 consecutive months, before and after"),
+        ("Measured", "Jul&ndash;Oct 2026, Shopify Analytics"),
     ])}
   </div>
 </section>
@@ -671,11 +683,10 @@ def build_ttusa():
         <h2 class="bigquote" style="margin-top:1.2rem">A big catalogue that was hard to shop.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>TableTennisStore.us sells professional table tennis equipment &mdash; blades, rubbers and accessories
-        from global brands &mdash; to players across the United States and beyond.</p>
-        <p>The store needed structural improvements to make navigation clearer, improve trust signals and increase
-        product discovery, <strong>while keeping the Shopify architecture scalable</strong>. It was not a business
-        that needed a prettier website. It was a business losing orders inside its own catalogue.</p>
+        <p>In July 2026 the store pulled <strong>16,349 sessions</strong> and converted 234 of them. Only 5.5% of
+        those visitors ever reached a cart.</p>
+        <p>That is not a traffic problem and it is not a pricing problem. It was a business losing orders inside its
+        own catalogue, and then losing a second batch between the cart and the card.</p>
       </div>
     </div>
   </div>
@@ -731,43 +742,98 @@ def build_ttusa():
 
 <section class="results section">
   <div class="wrap">
-    {shead("03", "Proof",
-           ["The numbers,", "all four months."],
-           "Two months before the redesign and two months after it, as recorded in the store&rsquo;s analytics. The full picture, including the part that is less flattering.")}
+    {shead("03", "Diagnosis",
+           ["Where the orders", "were leaking."],
+           "July 2026, before the work. Of every hundred arrivals, five reached a cart, and half of the ones who reached checkout never finished.")}
+
+    {julyfunnel}
+    <p class="note" style="margin-top:1rem">Each bar is that step&rsquo;s conversion from the step immediately
+    before it. Counts are exactly as Shopify recorded them for 1&ndash;31 July 2026.</p>
+
+    {shot("tts-jul.jpg", "July 2026 in the store&rsquo;s own Shopify Analytics. <b>16,349 sessions, 899 carts, 466 checkouts, 234 orders, 1.43% conversion</b> — and July itself already down 31% on June.", 934, 492)}
+
+    <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
+      <div class="split__l" data-reveal>
+        <h3 class="display h3" style="max-width:20ch">Two separate leaks, two different fixes.</h3>
+      </div>
+      <div class="split__r prose" data-reveal data-delay="120">
+        <p><strong>Before the cart.</strong> Only 5.5% got that far. People could not find the right product fast
+        enough, and nothing told them why to trust the store with a card.</p>
+        <p><strong>After the cart.</strong> Half of everyone at checkout left. In equipment retail that is usually
+        shipping cost arriving as a surprise at the final step.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
+  <div class="wrap">
+    {shead("04", "The shipping fix",
+           ["Shipping stopped being", "a surprise at the end."],
+           "Two changes aimed squarely at the second leak.")}
+
+    <div class="split" style="margin-top:clamp(1.6rem,3vw,2.4rem)">
+      <div class="split__l prose" data-reveal>
+        <p>Shipping options were rebuilt around what customers actually buy. A rubber sheet and a full-size table
+        are not the same parcel and should never have been offered the same way.</p>
+        <p>Then the threshold was made visible. A <strong>free shipping progress bar</strong> sits in the side cart
+        and at checkout, counting in real money toward the $75 mark.</p>
+      </div>
+      <div class="split__r prose" data-reveal data-delay="120">
+        <p>It does two jobs. Removes the late surprise that was killing checkouts, and gives a shopper a reason to
+        add one more item rather than leave. Both states below, from the live store.</p>
+      </div>
+    </div>
+
+    {shotgrid(
+      shot("tts-cart-partial.jpg", "Not there yet. <b>&ldquo;You&rsquo;re $20.03 away from free shipping&rdquo;</b> — a part-filled bar and a specific number, shown while there is still time to act on it.", 1347, 633),
+      shot("tts-cart-unlocked.jpg", "Threshold cleared. <b>&ldquo;You&rsquo;ve unlocked FREE SHIPPING&rdquo;</b> — confirmed in the cart, long before checkout can take it back.", 1354, 675, url="tabletennisstore.us"),
+      cls="shotgrid--2")}
+  </div>
+</section>
+
+<section class="results section">
+  <div class="wrap">
+    {shead("05", "Proof",
+           ["What happened", "to the number."],
+           "Four consecutive periods from the store&rsquo;s analytics, including the two that are not flattering.")}
     <div class="chartwrap">
       <div class="chart" data-reveal="fade">
         <figure class="chartfig chartfig--marked">
-          <figcaption>Site-wide conversion rate &mdash; Table Tennis USA</figcaption>
+          <figcaption>Site-wide conversion rate &mdash; Table Tennis Store, 2026</figcaption>
           <div class="plot">
-            <div class="yaxis" aria-hidden="true"><span>2.00%</span><span>1.00%</span><span>0</span></div>
+            <div class="yaxis" aria-hidden="true"><span>2.50%</span><span>1.25%</span><span>0</span></div>
             <div class="bars bars--four">
-              <div class="bars__mark" aria-hidden="true"><span>Redesign launched</span></div>
+              <div class="bars__mark" aria-hidden="true"><span>Work went in</span></div>
               {bars}
             </div>
           </div>
         </figure>
       </div>
       <div class="chart__note" data-reveal>
-        <p class="note">Conversion rate roughly doubled across the launch: 0.72% in December to 1.26% in January,
-        the first full month on the new store, then 1.56% in February. Before the redesign the same metric had moved
-        only from 0.66% to 0.72%.</p>
+        <p class="note">The store was already falling before the work started. July was down 31% on June, then
+        August dropped another 52% to 0.68%. September came back to 1.95%, and the most recent thirty days sit at
+        2.24% &mdash; above where the store was in July, before the slide bottomed out.</p>
       </div>
     </div>
 
     <div class="statrow" style="margin-top:clamp(2.4rem,5vw,4rem)" data-stagger>{statrow}</div>
 
     <div style="margin-top:clamp(2.8rem,5.5vw,4.4rem)" data-reveal>
-      <p class="mono eyebrow" style="margin-bottom:1.6rem">Traffic fell. Orders did not.</p>
-      <div class="minis">{minis}</div>
-      <p class="note" style="margin-top:.6rem">Two separate measures, each on its own scale. Bars are proportional
-      within each chart; the figures above them are the recorded values.</p>
+      <p class="mono eyebrow" style="margin-bottom:1.2rem">The receipts</p>
+      {receipts(
+        shot("tts-aug.jpg", "<b>Aug 2026 &mdash; 0.68%</b>, down 52% on July. The low point.", 934, 470),
+        shot("tts-sep.jpg", "<b>Sep 2026 &mdash; 1.95%</b>, up 191% on August.", 934, 467),
+        shot("tts-oct.jpg", "<b>5 Sep&ndash;5 Oct &mdash; 2.24%</b>, up 190% on the previous thirty days.", 934, 468))}
+      <p class="note" style="margin-top:1rem">Shopify Analytics, USD, human sessions only. Date ranges are visible
+      in each capture so every figure on this page can be checked against its source.</p>
     </div>
 
     <div style="margin-top:clamp(2.6rem,5vw,4rem)" data-reveal>
-      <p class="mono eyebrow" style="margin-bottom:1.2rem">All four months, in full</p>
+      <p class="mono eyebrow" style="margin-bottom:1.2rem">All four periods</p>
       <div class="dtable-wrap">
         <table class="dtable">
-          <thead><tr><th>Period</th><th>Phase</th><th class="num">Visitors</th><th class="num">Conversion rate</th><th class="num">Orders</th></tr></thead>
+          <thead><tr><th>Period</th><th>Phase</th><th class="num">Conversion rate</th><th class="num">Change on prior period</th></tr></thead>
           <tbody>{trows}</tbody>
         </table>
       </div>
@@ -775,19 +841,15 @@ def build_ttusa():
 
     <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
       <div class="split__l" data-reveal>
-        <h3 class="display h3" style="max-width:18ch">Nearly the same orders, from 44% fewer visitors.</h3>
+        <h3 class="display h3" style="max-width:18ch">What I will and will not claim.</h3>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>Two things are true in these figures and both belong here. Conversion rate roughly doubled after the
-        redesign. Traffic also fell over the same period &mdash; 36.8k visitors in December to 20.5k in January.</p>
-        <p><strong>Which is why orders are the number worth looking at: 686 in December, 669 in January.</strong>
-        Almost the same number of orders from 44% fewer visitors. The store was converting the traffic it had far
-        more efficiently than before.</p>
-        <p>Conversion rate on its own does not isolate every contributing factor &mdash; traffic mix and seasonality
-        move month to month, and a smaller, higher-intent audience converts better by definition. Visitors,
-        conversion rate and orders are each reported here as the store&rsquo;s analytics recorded them. What four
-        consecutive months show consistently is direction: 0.66% to 0.72% before the redesign, 1.26% to 1.56%
-        after it. No revenue figure is claimed.</p>
+        <p>The store was sliding before I touched it, and that is on this page because leaving it off would make the
+        recovery look like something it is not.</p>
+        <p><strong>What I claim:</strong> the direction and the timing, both visible in the screenshots above.</p>
+        <p><strong>What I do not:</strong> that every point of the recovery is mine. Traffic mix and seasonality move
+        month to month, and conversion rate on its own does not isolate a cause. No revenue figure is claimed
+        anywhere on this site.</p>
       </div>
     </div>
   </div>
@@ -801,11 +863,9 @@ def build_ttusa():
         <h2 class="bigquote" style="margin-top:1.2rem">The redesign did not just change how the site looks.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>It changed how people understand the store, how much they trust the brand, how quickly they find a
-        product, and how easily they finish buying it. Those four things are what a conversion rate is measuring.</p>
-        <p>By improving structure, trust and the purchase flow, the store became measurably better at turning
-        visitors into customers &mdash; <strong>and it stayed a Shopify store the client can run and extend
-        themselves.</strong></p>
+        <p>It changed how quickly people find a product, how much they trust the store, and whether shipping
+        ambushes them at the last step. That is what a conversion rate is actually measuring.</p>
+        <p><strong>And it stayed a Shopify store the client can run and extend themselves.</strong></p>
       </div>
     </div>
   </div>
@@ -822,9 +882,8 @@ def build_ttusa():
            "Send the URL and your current conversion rate. I will tell you where I think the orders are leaking before you pay me anything.")}
 """
     return page("table-tennis-usa.html", "Table Tennis USA — Case Study — AKINTAYO",
-                "Shopify UX optimisation and conversion-focused redesign for Table Tennis USA. Conversion rate "
-                "0.72% to 1.26% in the first full month after launch, 1.56% the month after — with orders holding "
-                "steady on 44% fewer visitors.",
+                "Shopify UX and conversion work for Table Tennis Store. Conversion rate from a 0.68% low in "
+                "August 2026 to 2.24% across the latest thirty days, with the analytics screenshots attached.",
                 "work.html", body, og_img="og-ttusa.jpg")
 
 
@@ -859,46 +918,27 @@ def build_gewo():
 
     beats = "".join([
         beat("01", "A manufacturer&rsquo;s store has two jobs at once", [
-            "GEWO USA is the American arm of GEWO, a table tennis equipment manufacturer. It was established by "
-            "Ben Nisbet, a long-time table tennis equipment specialist, in partnership with professional player "
-            "Mishel Levinski &mdash; on the principle that, in their words, building a better foundation "
-            "&ldquo;with the eyes of a player&rdquo; is what the youth and professional levels of the sport need.",
-            "That changes the design brief. A multi-brand retailer helps a customer choose <em>between</em> brands. "
-            "A manufacturer&rsquo;s store has to carry the brand itself &mdash; its range logic, its sponsored players, "
-            "its reason for existing &mdash; while still functioning as a shop. Every layout decision on the site is "
-            "a negotiation between those two jobs."]),
-        beat("02", "Navigation built on how equipment is classified, not how it is stocked", [
-            "The menu follows the sport&rsquo;s own taxonomy rather than a generic shop structure &mdash; twenty-seven "
-            "subcategories under six headings, mapped above. A player who already knows they want long pips reaches "
-            "them in two moves.",
-            "That is the entire point: the menu is doing the work a shop assistant would do, and it can only do it "
-            "if whoever built it understands the categories."]),
-        beat("03", "Collection tiles that set expectations before the click", [
-            "The homepage carries collection tiles showing how many products sit behind each one. Fifty blades and "
-            "fifty rubbers is a serious range; seven pairs of shoes is not, and there is no reason to pretend "
-            "otherwise.",
-            "Showing the count costs nothing and stops a customer bouncing off a category that was never going to "
-            "have what they wanted."]),
-        beat("04", "Four claims a manufacturer can make that a reseller cannot", [
-            "A rotating trust strip sits directly under the hero: pro tested, match-ready consistency, premium "
-            "materials, precision engineered. Those are manufacturing claims, not retail ones &mdash; a reseller has "
-            "no standing to make them.",
-            "Placing them immediately after the hero, before the catalogue, frames everything below as the "
-            "manufacturer&rsquo;s own equipment rather than another storefront selling the same boxes."]),
-        beat("05", "Proof placed after the catalogue, not before it", [
-            "The site features its sponsored players &mdash; Alex Averin, Kokou Fanny, Felix Lartey, Romain Lorentz, "
-            "Amoolya Menon and Kazeem Makanjuola &mdash; but positions them below the product sections rather than "
-            "above them.",
-            "A visitor who arrived to buy rubber does not want to meet the roster first. A visitor who has been "
-            "scrolling for two minutes is exactly the person for whom &lsquo;these players use this equipment&rsquo; "
-            "is the closing argument."]),
-        beat("06", "Combo specials, for the customer who does not yet know what to ask", [
-            "The hardest customer in table tennis retail is the one who does not know which blade goes with which "
-            "rubber. The store answers that with combo specials &mdash; pre-matched setups carried as their own "
-            "navigation category, their own homepage section and their own collection tile, with the saving "
-            "shown as a percentage.",
-            "It converts an intimidating configuration problem into a single product decision, and it does it "
-            "without hiding the components from the players who do want to choose them."]),
+            "GEWO USA was established by Ben Nisbet with professional player Mishel Levinski, on the principle of "
+            "building equipment &ldquo;with the eyes of a player&rdquo;.",
+            "That changes the brief. A multi-brand retailer helps you choose <em>between</em> brands. A "
+            "manufacturer&rsquo;s store has to carry the brand itself and still work as a shop. Every layout "
+            "decision is a negotiation between those two jobs."]),
+        beat("02", "Navigation built on how equipment is classified", [
+            "Twenty-seven subcategories under six headings, following the sport&rsquo;s own taxonomy rather than a "
+            "generic shop template. A player who knows they want long pips reaches them in two moves.",
+            "The menu is doing the work a shop assistant would do, and it can only do that if whoever built it "
+            "understands the categories."]),
+        beat("03", "Four claims a reseller cannot make", [
+            "Pro tested, match-ready consistency, premium materials, precision engineered. Those are manufacturing "
+            "claims, and a reseller has no standing to make them.",
+            "Sitting them under the hero, before the catalogue, frames everything below as the manufacturer&rsquo;s "
+            "own equipment rather than another storefront selling the same boxes."]),
+        beat("04", "Combo specials, for the customer who does not know what to ask", [
+            "The hardest customer in table tennis retail is the one who cannot pair a blade with a rubber. "
+            "Pre-matched setups get their own navigation category, homepage section and tile, with the saving shown "
+            "as a percentage.",
+            "An intimidating configuration problem becomes one product decision, without hiding the components from "
+            "players who do want to choose."]),
     ])
 
     body = f"""
@@ -911,9 +951,9 @@ def build_gewo():
     </div>
     <div class="hero__body">
       <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>The US store of a table tennis equipment manufacturer.
-        Blades, rubbers, tables, balls, apparel and maintenance items sold to players from beginner to elite &mdash;
-        by a brand that also has to look like a brand. Design work on a store carrying two jobs at once.</p>
+        <p class="lead lead--wide" data-reveal data-onload>The US store of a table tennis equipment manufacturer,
+        carrying two jobs at once: be the brand, and be the shop. It loads its largest element in
+        <strong>1.2 seconds</strong> and moves nothing while it does. The store is live, so judge it there.</p>
       </div>
     </div>
     {livebtn("https://www.gewousa.com/", "Open the live store")}
@@ -923,7 +963,7 @@ def build_gewo():
         ("Platform", "Shopify"),
         ("Role", "Website design"),
         ("Live site", '<a href="https://www.gewousa.com/" target="_blank" rel="noopener">gewousa.com &#8599;</a>'),
-        ("Published data", "None &mdash; see note"),
+        ("Measured", "Core Web Vitals, 30 days"),
     ])}
   </div>
 </section>
@@ -936,16 +976,23 @@ def build_gewo():
         <h2 class="bigquote" style="margin-top:1.2rem">Make the brand and the catalogue stop fighting each other.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>&ldquo;Your Game. Powered by GEWO&rdquo; sits at the top of the homepage; &ldquo;GEWO: the better way to
-        play&rdquo; sits further down. Between them is a catalogue spanning shakehand and Chinese penhold blades,
-        four categories of rubber, indoor and outdoor tables, tournament and training balls, apparel, footwear, and
-        maintenance items down to blade sealer, edge tape, glue and cutting knives.</p>
+        <p>The catalogue runs from shakehand and penhold blades through four categories of rubber, indoor and
+        outdoor tables, balls, apparel, footwear, and maintenance items down to edge tape and glue.</p>
         <p>Those are not one kind of purchase. <strong>Apparel is browsed. Rubber is specified. A table is
-        researched. Edge tape is re-ordered.</strong> The structure of the store has to let each of those happen
-        without forcing everyone down the same route &mdash; and without the brand story getting in the way of
-        someone who came to buy glue.</p>
+        researched. Edge tape is re-ordered.</strong> The store has to let all four happen without the brand story
+        blocking someone who came to buy glue.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="wrap">
+    {shotgrid(
+      shot("gewo-home.jpg", "The homepage. Brand first, then the trust strip, then eight collection tiles — so a player who came to shop is two clicks from the right category.", 1365, 1180, url="gewousa.com", cls="shot--crop"),
+      shot("gewo-pdp.jpg", "A product page. Price, variant, stock count and both buy paths above the fold, with the full specification underneath for the players who read it.", 1366, 1180, url="gewousa.com/products", cls="shot--crop"),
+      cls="shotgrid--2")}
+    {shot("gewo-pdp-bands.jpg", "Below every product: <b>who it is for</b>, a four-point performance read, and endorsements from GEWO&rsquo;s own sponsored players. A reseller cannot publish any of this. The manufacturer can.", 1366, 1250, cls="shot--crop")}
   </div>
 </section>
 
@@ -969,12 +1016,49 @@ def build_gewo():
   </div>
 </section>
 
+<section class="results section">
+  <div class="wrap">
+    {shead("03", "Performance",
+           ["It is fast, and", "nothing jumps."],
+           "Core Web Vitals as Shopify recorded them over thirty days. These are the three measurements Google uses to judge whether a page is usable.")}
+
+    {shot("gewo-vitals.jpg", "Thirty days of real visitor data. <b>LCP 1201ms. INP 56ms. CLS 0.</b> All three rated Good.", 688, 76)}
+
+    <div class="statrow" style="margin-top:clamp(2.2rem,4.5vw,3.4rem)" data-stagger>
+      <div class="stat stat--hl" data-reveal>
+        <p class="stat__v">1.2s</p>
+        <p class="stat__l mono">Largest Contentful Paint. Google calls anything under 2.5s good, so this is less than half the limit</p>
+      </div>
+      <div class="stat" data-reveal>
+        <p class="stat__v">56ms</p>
+        <p class="stat__l mono">Interaction to Next Paint. The threshold is 200ms. This is roughly a quarter of it</p>
+      </div>
+      <div class="stat" data-reveal>
+        <p class="stat__v">0</p>
+        <p class="stat__l mono">Cumulative Layout Shift. Nothing on the page moves while it loads. Not low, zero</p>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:clamp(2.2rem,4.5vw,3.4rem)">
+      <div class="split__l" data-reveal>
+        <h3 class="display h3" style="max-width:20ch">Why a store owner should care about the third one.</h3>
+      </div>
+      <div class="split__r prose" data-reveal data-delay="120">
+        <p>Layout shift is what happens when a page loads in pieces and the thing you were about to tap slides out
+        from under your thumb. On a phone it is the reason people tap the wrong button and leave.</p>
+        <p>A score of zero means it never happens here. That is not a design flourish, it is a checkout that does
+        not lose people for a stupid reason.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section">
   <div class="wrap">
     <div class="rail">
       <div class="rail__side" data-reveal="fade">
         <p class="mono mono--accent">Design decisions</p>
-        <p class="mono" style="margin-top:.6rem">Six choices and the reasoning behind them</p>
+        <p class="mono" style="margin-top:.6rem">Four choices and the reasoning behind them</p>
         <div class="facts" style="margin-top:2rem">
           <div class="fact"><span class="mono">Store type</span><span class="fact__v">Manufacturer-owned</span></div>
           <div class="fact"><span class="mono">Nav headings</span><span class="fact__v">6, nested</span></div>
@@ -988,10 +1072,11 @@ def build_gewo():
         {beats}
         <div class="caveat" data-reveal>
           <p class="mono mono--accent">What I am not claiming</p>
-          <p>There is no performance data I can publish for this project, so none is presented. The conversion
-          figures on this site belong to the Table Tennis USA project and only to it. What GEWO USA demonstrates
-          is a different problem solved &mdash; a brand-owned catalogue rather than a multi-brand retailer &mdash;
-          and the design reasoning behind it. The store is live; judge the execution there.</p>
+          <p>The speed numbers above are real and measured. <strong>There is no conversion or revenue data I can
+          publish for this store</strong>, so none appears here. The conversion figures on this site belong to the
+          Table Tennis Store project and only to it.</p>
+          <p>What GEWO USA shows is a different problem solved: a brand-owned catalogue rather than a multi-brand
+          retailer, built fast. The store is live. Judge the execution there.</p>
         </div>
       </div>
     </div>
@@ -1049,38 +1134,30 @@ def build_paul():
 
     beats = "".join([
         beat("01", "A coaching business is not a shop", [
-            "Paul David coaches table tennis. What he sells is time: in-home coaching, private lessons, group "
-            "lessons and camp clinics &mdash; an hour or a day, at a stated price, with travel affecting some bookings.",
-            "None of that belongs in a cart. Paul is paid in person, so a checkout would have added a step that "
-            "does not exist in his business and would have to be maintained forever. The site was built with no "
-            "online payments, which made the design question a different one entirely: <strong>how do you get "
-            "someone from &lsquo;I want lessons&rsquo; to a message in his inbox, in as few steps as possible?</strong>"]),
+            "Paul David sells time: in-home coaching, private lessons, group lessons and camp clinics.",
+            "None of that belongs in a cart. He is paid at the table, so a checkout adds a step his business does "
+            "not have. Which makes the question a different one: <strong>how do you get someone from &lsquo;I want "
+            "lessons&rsquo; to a message in his inbox, in as few steps as possible?</strong>"]),
         beat("02", "Four services, priced in the open", [
-            "Each service carries its name, its duration, its price and a plain description of who it is for, with "
-            "travel fees noted where they apply. Coaches routinely hide pricing and lose the enquiry to the "
-            "uncertainty &mdash; the visitor assumes it is expensive, or assumes asking commits them to something.",
-            "Publishing it does two jobs: it filters out the people who were never going to book, and it gives "
-            "everyone else a reason to act now rather than &lsquo;think about it&rsquo;."]),
+            "Name, duration, price and who it is for, with travel fees noted. Coaches routinely hide pricing and "
+            "lose the enquiry to the uncertainty, because the visitor assumes it is expensive.",
+            "Publishing it filters out the people who were never going to book and gives everyone else a reason to "
+            "act now."]),
         beat("03", "One booking action per service", [
-            "Every service has its own <em>Book now</em> button, and each one opens a pre-addressed email rather "
-            "than dropping the visitor into a generic contact page. The service they picked is already the subject "
-            "of the message.",
-            "No form to build, no form to maintain, no submissions disappearing into a plugin &mdash; and no "
-            "ambiguity on Paul&rsquo;s end about which service the enquiry is for."]),
+            "Each service has its own <em>Book now</em> button opening a pre-addressed email, with the service "
+            "already in the subject line.",
+            "No form to build or maintain, no submissions lost in a plugin, and no ambiguity at Paul&rsquo;s end "
+            "about which service the enquiry is for."]),
         beat("04", "The equipment page, which is really a partner path", [
-            "Rather than build a shop Paul would have to run, the site carries a <em>Recommended Equipment</em> page "
-            "with three setups tiered by level: the GEWO CS Energy Control for youth starting out, the CS Energy "
-            "Carbon Pro for adults and kids wanting more speed, and the Xolo Offensive combo with Neoflexx rubber "
-            "for players serious about developing their game.",
-            "Each links through to GEWO USA &mdash; a properly stocked store I had already worked on &mdash; "
-            "and carries a coach-specific code, PDCGEWO, for 12% off. <strong>The student gets a straight answer "
-            "and a discount; the coach gets a credible recommendation and zero inventory.</strong>"]),
+            "Rather than run a shop himself, Paul has a <em>Recommended Equipment</em> page "
+            "naming three GEWO setups by level, blade and rubber specified.",
+            "Each links to GEWO USA, a properly stocked store I had already worked on, and carries his own code, "
+            "PDCGEWO, for 12% off. <strong>The student gets a straight answer and a discount; the coach gets a "
+            "credible recommendation and zero inventory.</strong>"]),
         beat("05", "Built to be handed over", [
-            "The unglamorous half of the project: services structured so Paul can edit them himself, payment "
-            "configured to match how he actually gets paid, the domain connected, and ownership transferred to him "
-            "at the end.",
-            "A site the client cannot change is a site that goes stale within a year and quietly stops "
-            "representing the business."]),
+            "The unglamorous half: services Paul can edit himself, payment matched to how he actually gets paid, "
+            "domain connected, ownership transferred.",
+            "A site the client cannot change goes stale within a year."]),
     ])
 
     body = f"""
@@ -1093,9 +1170,9 @@ def build_paul():
     </div>
     <div class="hero__body">
       <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>A table tennis coach with four services to sell and no cart
-        to sell them in. The job was to turn coaching hours into a site that produces enquiries, connect his students
-        to equipment without making him a retailer, and leave the whole thing in his hands.</p>
+        <p class="lead lead--wide" data-reveal data-onload>A coach with four services to sell and no cart to sell
+        them in. Turn coaching hours into enquiries, connect students to equipment without making him a retailer,
+        and leave the whole thing in his hands.</p>
       </div>
     </div>
     {livebtn("https://pauldavidcoach.com/", "Open the live site")}
@@ -1120,8 +1197,8 @@ def build_paul():
         <tbody>{srows}</tbody>
       </table>
     </div>
-    <p class="note" style="margin-top:1.4rem" data-reveal>Travel fees may apply depending on location &mdash; stated on
-    the page rather than raised after someone has already committed.</p>
+    <p class="note" style="margin-top:1.4rem" data-reveal>Travel fees are stated on the page rather than raised
+    after someone has committed.</p>
   </div>
 </section>
 
@@ -1130,11 +1207,10 @@ def build_paul():
   <div class="wrap" style="position:relative;z-index:2">
     {shead("01", "The booking path",
            ["Five steps, no form,", "no checkout."],
-           "The entire design problem for a coaching site is the distance between wanting a lesson and the coach knowing about it. Every step that can be removed, is.")}
+           "The whole problem is the distance between wanting a lesson and the coach knowing about it.")}
     {bookflow}
-    <p class="note" style="margin-top:1.8rem" data-reveal>A conventional contact form would add two steps &mdash;
-    fill in fields, wait for a confirmation &mdash; plus a plugin to maintain and a place for enquiries to go missing.
-    The email opens already knowing which service was chosen.</p>
+    <p class="note" style="margin-top:1.8rem" data-reveal>A contact form would add two steps, a plugin to maintain,
+    and a place for enquiries to go missing. The email opens already knowing which service was chosen.</p>
   </div>
 </section>
 
@@ -1144,9 +1220,8 @@ def build_paul():
            ["Answering the", "question every coach", "gets asked."],
            "A coach who says &lsquo;buy whatever&rsquo; loses authority. A coach who runs a shop loses time. This is the third option.")}
     {kitflow}
-    <p class="note" style="margin-top:1.8rem" data-reveal>The student gets a specific answer matched to their level
-    and a reason to act on it. The coach carries no stock, no shipping and no returns. Two of my clients end up
-    worth more to each other than either was alone.</p>
+    <p class="note" style="margin-top:1.8rem" data-reveal>The student gets a specific answer and a reason to act.
+    The coach carries no stock, no shipping, no returns. Two of my clients worth more to each other than alone.</p>
   </div>
 </section>
 
@@ -1155,7 +1230,7 @@ def build_paul():
     <div class="rail">
       <div class="rail__side" data-reveal="fade">
         <p class="mono mono--accent">Design decisions</p>
-        <p class="mono" style="margin-top:.6rem">Five choices and the reasoning behind them</p>
+        <p class="mono" style="margin-top:.6rem">Five choices, and why</p>
         <div class="facts" style="margin-top:2rem">
           <div class="fact"><span class="mono">Services</span><span class="fact__v">4, individually priced</span></div>
           <div class="fact"><span class="mono">Payments</span><span class="fact__v">In person, by design</span></div>
@@ -1170,7 +1245,7 @@ def build_paul():
         <div class="caveat" data-reveal>
           <p class="mono mono--accent">What I am not claiming</p>
           <p>No booking or revenue figures are published for this project, so none appear here. What it shows is
-          that the same thinking applies away from ecommerce: understand how the business actually takes money,
+          that the same thinking works away from ecommerce: understand how the business actually takes money,
           then build the shortest honest path to it &mdash; and notice where two clients can be worth more to each
           other than either is alone. The site is live; judge the execution there.</p>
         </div>
@@ -1199,35 +1274,30 @@ def build_paul():
 def build_services():
     svcs = [
         ("01", "Website design from scratch",
-         "For a table tennis business with no website, or one whose site was never really designed &mdash; a placeholder, "
-         "a template that was never finished, a page that exists only because something had to.",
-         "Brands launching direct-to-consumer, new clubs and academies, coaches, event organisers, distributors "
-         "putting a proper face on an established business.",
+         "For a business with no website, or one whose site was never really designed. A placeholder, an unfinished "
+         "template, a page that exists only because something had to.",
+         "Brands launching direct, new clubs and academies, coaches, event organisers, distributors.",
          ["Structure and page architecture", "Visual design and design system",
           "Full build and launch", "Mobile and performance work",
           "Domain and DNS setup", "Handover so you can run it"]),
         ("02", "Ecommerce website design",
-         "For businesses selling equipment. The catalogue is the site: how it is organised, how a customer narrows "
-         "it down, and what a product page has to prove before someone spends money on a blade they cannot hold.",
-         "Equipment brands, multi-brand retailers, manufacturer-owned stores, distributors selling direct and "
-         "clubs running a pro shop.",
+         "The catalogue is the site: how it is organised, how a customer narrows it down, and what a product page "
+         "has to prove before someone buys a blade they cannot hold.",
+         "Equipment brands, retailers, manufacturer-owned stores, distributors, clubs running a pro shop.",
          ["Catalogue and collection architecture", "Product page design for specifications",
           "Filtering and search behaviour", "Cart and checkout flow",
           "Shopify theme customisation and Liquid", "Shipping, currency and region handling"]),
         ("03", "Website redesign",
-         "For a site that works but is holding the business back. A redesign has to move the business forward without "
-         "throwing away what is already earning &mdash; search rankings, product data, URL structure and the habits of "
-         "customers who already know their way around.",
-         "Established stores that have outgrown their design, brands after a rebrand, and businesses whose site "
-         "was built years ago by someone no longer available.",
+         "For a site that works but holds the business back. A redesign has to move things forward without throwing "
+         "away what already earns: rankings, product data, URLs, and customer habits.",
+         "Stores that outgrew their design, brands after a rebrand, sites built by someone no longer available.",
          ["Audit of the existing site", "Redesign against the current buying path",
           "URL and content preservation", "Migration without losing product data",
           "Before-and-after measurement", "Staged launch"]),
         ("04", "Conversion-focused optimisation",
-         "For a site that gets traffic and does not turn enough of it into orders. This is not a redesign &mdash; it is "
-         "work on the specific points where people decide to leave, followed by measurement.",
-         "Any table tennis business with real traffic and a conversion rate that has stopped moving, whether or not "
-         "I built the site.",
+         "For a site with traffic that does not turn into orders. Not a redesign. Work on the specific points where "
+         "people leave, then measurement.",
+         "Any table tennis business with real traffic and a conversion rate that has stopped moving.",
          ["Buying-path mapping, end to end", "Product and collection page work",
           "Cart and checkout friction removal", "Trust, shipping and returns clarity",
           "Analytics and conversion tracking", "Month-over-month reporting"]),
@@ -1256,9 +1326,8 @@ def build_services():
     </div>
     <div class="hero__body">
       <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>Four services. Most projects are one of them. Some run two together &mdash;
-        a redesign that is really a redesign plus conversion work, or a new build for a brand that is also
-        launching a store.</p>
+        <p class="lead lead--wide" data-reveal data-onload>Four services. Most projects are one of them. Some run
+        two together.</p>
       </div>
     </div>
   </div>
@@ -1274,12 +1343,12 @@ def build_services():
   <div class="wrap">
     {shead("&mdash;", "Process",
            ["The same four stages,", "every time."],
-           "Nothing is designed before the catalogue and the buying path are understood. That order is not negotiable, because getting it wrong is what produces a beautiful site that does not sell.")}
+           "Nothing is designed before the catalogue and the buying path are understood. Getting that order wrong is what produces a beautiful site that does not sell.")}
     <div class="steps" data-stagger>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">01</p><h3 class="step__t">Learn the catalogue</h3><p class="step__d">What you sell, how it is organised, what customers ask before buying, and where the money actually comes from.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">02</p><h3 class="step__t">Map the buying path</h3><p class="step__d">The route from arrival to completed order or enquiry, written out step by step, with the stalling points marked.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">03</p><h3 class="step__t">Design and build</h3><p class="step__d">Design that follows the map, then a working site &mdash; built, tested on real devices, and launched.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">04</p><h3 class="step__t">Measure and refine</h3><p class="step__d">Conversion and behaviour after launch, and changes made on the evidence rather than on preference.</p></div>
+      <div class="step" data-reveal><p class="step__no mono mono--accent">01</p><h3 class="step__t">Learn the catalogue</h3><p class="step__d">What you sell, how it is organised, and where the money actually comes from.</p></div>
+      <div class="step" data-reveal><p class="step__no mono mono--accent">02</p><h3 class="step__t">Map the buying path</h3><p class="step__d">Arrival to completed order, written out, with the stalling points marked.</p></div>
+      <div class="step" data-reveal><p class="step__no mono mono--accent">03</p><h3 class="step__t">Design and build</h3><p class="step__d">Design that follows the map, then a working site, tested on real devices.</p></div>
+      <div class="step" data-reveal><p class="step__no mono mono--accent">04</p><h3 class="step__t">Measure and refine</h3><p class="step__d">Changes made on the evidence rather than on preference.</p></div>
     </div>
   </div>
 </section>
@@ -1292,9 +1361,9 @@ def build_services():
         <h2 class="bigquote" style="margin-top:1.2rem">Describe the problem. I will tell you which of these it is.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>Plenty of businesses arrive asking for a redesign when the real problem is three product pages and a
-        checkout step. Others ask for conversion work when the site underneath cannot support it. Those are
-        different jobs with different costs, and it is worth knowing which one you have before anyone quotes you.</p>
+        <p>Plenty of businesses ask for a redesign when the real problem is three product pages and a checkout
+        step. Others ask for conversion work when the site underneath cannot support it. Worth knowing which one
+        you have before anyone quotes you.</p>
         <p>Send the URL and a sentence about what is not working. <strong>If the answer is that you do not need me
         yet, I will say that.</strong></p>
       </div>
@@ -1314,10 +1383,14 @@ def build_services():
 # ==================================================================== ABOUT ==
 def build_about():
     principles = [
-        ("Proof over adjectives", "A portfolio should carry numbers where numbers exist and say so plainly where they do not. Everything on this site follows that rule, including the parts that would look better if it did not &mdash; the Table Tennis USA traffic figures among them."),
-        ("The catalogue comes first", "Design decisions made before anyone understands the products are guesses. In this sport the products are technical and the guesses are usually wrong."),
-        ("Build it, do not just draw it", "On Table Tennis USA I did the UX design and the Shopify implementation. I hand over working websites, not concept files for someone else to interpret and dilute."),
-        ("Leave the client in control", "Ownership transferred, domain connected, structure editable. A site the owner cannot change is a site that goes stale within a year."),
+        ("Proof over adjectives",
+         "Numbers where numbers exist. That rule is why the Table Tennis Store decline sits on this site beside the recovery."),
+        ("The catalogue comes first",
+         "Decisions made before anyone understands the products are guesses, and in this sport the guesses are usually wrong."),
+        ("Build it, do not just draw it",
+         "I hand over working websites, not concept files for someone else to interpret and dilute."),
+        ("Leave the client in control",
+         "Ownership transferred, domain connected, structure editable. A site the owner cannot change goes stale."),
     ]
     cards = "".join(f"""<article class="card" style="grid-column:span 6" data-reveal>
   <p class="card__no mono">{i+1:02d}</p>
@@ -1326,14 +1399,16 @@ def build_about():
 </article>""" for i, (t, d) in enumerate(principles))
 
     human = [
+        ("Home", "Osun State, Nigeria",
+         "Born and based here. My clients are not, so everything runs on email and shipped work, which is why this site leads with evidence instead of a promise."),
         ("Study", "Doctor of Pharmacy",
-         "I am a PharmD candidate at Obafemi Awolowo University. Pharmacy is a degree in reading technical specifications carefully and getting the details exactly right &mdash; which turns out to be most of this job too."),
-        ("Chess", "Grandmaster",
-         "The thing most people do not know about me. Chess is pattern recognition and thinking several moves past the obvious one, under time pressure. It is closer to conversion work than it sounds."),
+         "A PharmD candidate at Obafemi Awolowo University. Pharmacy is a degree in reading technical specifications carefully and getting the details exactly right."),
+        ("Chess", "A serious habit",
+         "Not a titled player, a serious one. Chess is pattern recognition and thinking several moves past the obvious, under time pressure."),
         ("Gadgets", "Phones, laptops, cameras",
-         "My genuine obsession. I want to see them, hold them, unbox them. Caring how a physical object feels in the hand is not unrelated to caring how an interface feels under a thumb."),
-        ("Base", "Nigeria, working worldwide",
-         "I am in Nigeria and my clients are not. Everything runs over email and shipped work, which is why this site leads with evidence rather than a headshot and a promise."),
+         "The real obsession. Caring how an object feels in the hand is not unrelated to caring how an interface feels under a thumb."),
+        ("Off the desk", "Books, restaurants, a map",
+         "I read constantly, I will try any restaurant once, and the long plan is to see as much of the world as I can manage."),
     ]
     hcards = "".join(f"""<article class="hcard" data-reveal>
   <p class="mono mono--accent">{k}</p>
@@ -1352,13 +1427,16 @@ def build_about():
   <div class="aura" aria-hidden="true"></div>
   <div class="wrap hero__inner">
     <p class="mono eyebrow" data-reveal="fade" data-onload>About &mdash; Akingbehin Akintayo</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('A designer who', 'picked <span class="ital accent">one</span> sport', 'on purpose.', onload=True)}
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>AKINTAYO is the working name of Akingbehin Akintayo &mdash; an
-        ecommerce web designer in Nigeria, working with table tennis businesses internationally.</p>
+    <div class="intro-grid" style="margin-top:clamp(1.6rem,3.4vw,2.6rem)">
+      {portrait("akintayo.jpg", "Akingbehin Akintayo", tag="Akingbehin Akintayo", eager=True)}
+      <div>
+        {lines('A designer who', 'picked <span class="ital accent">one</span> sport', 'on purpose.', cls="display h2", onload=True)}
+        <div class="prose" style="margin-top:clamp(1.2rem,2.4vw,1.8rem)">
+          <p class="lead" data-reveal data-onload>I am an ecommerce web designer in Osun State, Nigeria, and I work
+          with table tennis businesses internationally. Stores, academies, coaches.</p>
+          <p data-reveal data-onload data-delay="90">Three of them are documented on this site, with the analytics
+          screenshots attached rather than described.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1372,15 +1450,10 @@ def build_about():
         <h2 class="bigquote" style="margin-top:1.2rem">Specialists get to skip the first month of every project.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>Most web designers work across whatever comes in &mdash; a dentist, a law firm, a clothing brand, a gym.
-        It is a reasonable way to make a living and it has one structural cost: every project begins with the
-        designer learning the client&rsquo;s market from zero, on the client&rsquo;s time and the client&rsquo;s money.</p>
-        <p>I removed that cost by going narrow. Table tennis is a real market with real money in it &mdash;
-        manufacturers, multi-brand retailers, distributors, clubs, academies, coaches, tournaments &mdash; and very
-        little of it is served by people who understand both the sport&rsquo;s equipment and how an ecommerce store
-        actually converts.</p>
-        <p><strong>So that is the business.</strong> Two table tennis ecommerce stores and one coaching practice so
-        far, with the work and the numbers documented on this site.</p>
+        <p>Most web designers take whatever comes in. A dentist, a law firm, a gym. Reasonable living, one
+        structural cost: every project starts with the designer learning a market from zero, on your money.</p>
+        <p>Going narrow removes that cost. Table tennis has real money in it, manufacturers through to coaches, and very
+        little of it is served by anyone who understands both the equipment and how a store actually converts.</p>
       </div>
     </div>
   </div>
@@ -1392,16 +1465,13 @@ def build_about():
     <div class="split">
       <div class="split__l" data-reveal>
         <p class="mono eyebrow">Beyond table tennis</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">Table tennis is the specialism. It is not the extent of the experience.</h2>
+        <h2 class="bigquote" style="margin-top:1.2rem">Table tennis is the specialism, not the extent of the experience.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>I have worked in ecommerce for a long time, and not only in this sport. The most recent example outside
-        it is <strong>ORIMI</strong> &mdash; a fine jewellery house selling made-to-order pieces in solid 18K gold with
-        natural diamonds and precious gemstones, built on Shopify and shipping to more than twenty-five countries.</p>
-        <p>Its positioning is &ldquo;sculptural fine jewellery, rooted in Yoruba philosophy&rdquo;, with collections
-        named AJ&Eacute;, IN&Aacute; and &Agrave;WO. A five-figure ring and a $40 rubber sheet are not the same sale,
-        but they are the same discipline: make the thing legible, make it trustworthy, and get out of the way at the
-        moment someone decides to buy.</p>
+        <p>The most recent work outside the sport is <strong>ORIMI</strong>, a fine jewellery house selling
+        made-to-order pieces in solid 18K gold, built on Shopify and shipping to more than twenty-five countries.</p>
+        <p>A five-figure ring and a $40 rubber sheet are not the same sale, but they are the same discipline. Make the
+        thing legible, make it trustworthy, get out of the way at the moment someone decides to buy.</p>
         <p><a class="tlink" href="https://orimijewelry.com/" target="_blank" rel="noopener">orimijewelry.com &#8599;</a></p>
       </div>
     </div>
@@ -1410,8 +1480,7 @@ def build_about():
 
 <section class="section">
   <div class="wrap">
-    {shead("&mdash;", "How I work",
-           ["Four things I do not", "compromise on."])}
+    {shead("&mdash;", "How I work", ["Four things I do not", "compromise on."])}
     <div class="deck" data-stagger>{cards}</div>
   </div>
 </section>
@@ -1422,8 +1491,6 @@ def build_about():
       <div class="split__l" data-reveal>
         <p class="mono eyebrow">Working in</p>
         <h2 class="display h3" style="margin-top:1.2rem;max-width:14ch">What I build with.</h2>
-        <p style="color:var(--fg-2);margin-top:1.2rem;max-width:34ch">Most table tennis stores run on Shopify, so most
-        of my ecommerce work does too &mdash; theme customisation and Liquid rather than fighting the platform.</p>
       </div>
       <div class="split__r" data-reveal data-delay="120">
         <div class="stack">{pills}</div>
@@ -1434,9 +1501,8 @@ def build_about():
 
 <section class="section">
   <div class="wrap">
-    {shead("&mdash;", "Off the clock",
-           ["The rest of it."],
-           "You are hiring a person, not a studio. It is reasonable to want to know who that is before you send money across an ocean.")}
+    {shead("&mdash;", "Off the clock", ["The rest of it."],
+           "You are hiring a person, not a studio. Reasonable to want to know who that is before sending money across an ocean.")}
     <div class="human" data-stagger>{hcards}</div>
   </div>
 </section>
@@ -1449,21 +1515,22 @@ def build_about():
         <h2 class="bigquote" style="margin-top:1.2rem">One person, start to finish.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>There is no account manager between you and the person doing the work, and nothing is handed to a junior
-        after the pitch. You email me, I answer, I build it.</p>
-        <p>That is a limit as much as a feature: I take a small number of projects, and if the timing does not work
-        I will tell you rather than stretch a schedule you are paying for.</p>
+        <p>No account manager between you and the person doing the work, and nothing handed to a junior after the
+        pitch. You email me, I answer, I build it.</p>
+        <p><strong>I am hungry, and I would rather say so than pretend otherwise.</strong> Your result becomes my
+        portfolio, so I will go a long way to make it work. That is also the limit: I take few projects, and if the
+        timing is wrong I will say so.</p>
       </div>
     </div>
   </div>
 </section>
 
 {cta_block("Working in table tennis? Let&rsquo;s talk.",
-           "One email with your site and the problem is enough to start. I read and reply to every one myself.")}
+           "One email with your site and the problem is enough to start.")}
 """
     return page("about.html", "About — AKINTAYO",
-                "Akingbehin Akintayo (AKINTAYO) — ecommerce web designer in Nigeria specialising in the table "
-                "tennis industry, with wider ecommerce work including the ORIMI fine jewellery store.",
+                "Akingbehin Akintayo (AKINTAYO) — ecommerce web designer in Osun State, Nigeria, specialising in "
+                "the table tennis industry, with wider ecommerce work including the ORIMI fine jewellery store.",
                 "about.html", body)
 
 
@@ -1488,9 +1555,8 @@ def build_contact():
     </div>
     <div class="hero__body">
       <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>No forms, no calls to book, no chat widget. Email keeps the first
-        conversation in writing, which is where project details belong &mdash; and it means you get a considered
-        answer rather than a scheduling link.</p>
+        <p class="lead lead--wide" data-reveal data-onload>No forms, no calls to book, no chat widget. Email keeps
+        the first conversation in writing, and gets you a considered answer rather than a scheduling link.</p>
       </div>
     </div>
     <div style="margin-top:clamp(2.4rem,5vw,4rem)" data-reveal data-onload>
@@ -1506,7 +1572,7 @@ def build_contact():
         <p class="mono eyebrow" data-reveal="fade">Who answers</p>
         <h2 class="display h2" data-reveal style="margin-top:1.2rem;max-width:14ch">Let&rsquo;s build something that works.</h2>
         <div class="prose" data-reveal data-delay="120" style="margin-top:1.4rem">
-          <p>Every email to the address above reaches me, and I answer it myself. No assistant screening
+          <p>Every email reaches me and I answer it myself. No assistant screening
           enquiries, no discovery call before anyone has looked at your site, and no proposal written by
           someone who has never opened it.</p>
           <p>Tell me what you sell and what is going wrong with it. <strong>If I am not the right person for
@@ -1552,7 +1618,7 @@ def build_contact():
            "No discovery calls, no proposal decks that take a fortnight.")}
     <div class="steps" data-stagger>
       <div class="step" data-reveal><p class="step__no mono mono--accent">01</p><h3 class="step__t">You email</h3><p class="step__d">Your site, your business and what is going wrong with it. A few sentences is enough.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">02</p><h3 class="step__t">I look properly</h3><p class="step__d">I go through the site before replying, and tell you what I think the actual problem is &mdash; including if it is not one I should be paid to fix.</p></div>
+      <div class="step" data-reveal><p class="step__no mono mono--accent">02</p><h3 class="step__t">I look properly</h3><p class="step__d">I go through the site before replying and tell you what the actual problem is, including when it is not one I should be paid to fix.</p></div>
       <div class="step" data-reveal><p class="step__no mono mono--accent">03</p><h3 class="step__t">Scope and price</h3><p class="step__d">If it is a fit, you get the scope, what it costs and what you will have at the end, in writing.</p></div>
     </div>
   </div>

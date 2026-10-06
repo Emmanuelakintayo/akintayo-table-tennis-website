@@ -69,11 +69,14 @@ and rebuild.
 
 ## 3. Images and file layout
 
-**The case studies carry no screenshots.** They are text, data and diagrams — the
-conversion chart, the traffic/orders comparison, the four-month table, the GEWO
-navigation tree and catalogue-depth chart, and the two Paul David flow diagrams.
-All of it is drawn in HTML and CSS, so there is nothing to produce, nothing to
-keep up to date, and nothing that can break.
+**The case studies carry real screenshots alongside the CSS-drawn charts.** The
+designed charts tell the story; the screenshots are the receipts. Every analytics
+capture still shows its own date-range pills, so any figure on the page can be
+checked against its source. All captures are USD.
+
+The diagrams — the July funnel, the conversion chart, the GEWO navigation tree and
+catalogue-depth chart, the two Paul David flow diagrams — are still drawn in HTML
+and CSS, so there is nothing to produce and nothing that can break.
 
 Each case study instead opens with a prominent **"Open the live store"** button.
 With no screenshots, the live sites are the visual proof — and a real site a
@@ -88,8 +91,14 @@ The entire image set is seven files, already built and sitting beside the HTML:
 | `og-gewo.jpg` | Link preview card for the GEWO USA case study |
 | `og-paul.jpg` | Link preview card for the Paul David case study |
 | `favicon.svg` | Browser tab icon |
-| `akintayo.jpg` | Your portrait — the "Built by a real person" section on the home page |
+| `akintayo.jpg` | Your portrait — home page, and the top of the About page |
 | `akintayo-seated.jpg` | Your portrait — the personal block on the contact page |
+| `tts-jul.jpg` | July 2026 funnel, Shopify Analytics — Table Tennis Store case study |
+| `tts-aug.jpg` `tts-sep.jpg` `tts-oct.jpg` | The three "receipts" under the conversion chart |
+| `tts-cart-partial.jpg` | Free-shipping progress bar, part-filled state |
+| `tts-cart-unlocked.jpg` | Free-shipping progress bar, threshold cleared |
+| `gewo-home.jpg` `gewo-pdp.jpg` `gewo-pdp-bands.jpg` | GEWO USA storefront captures |
+| `gewo-vitals.jpg` | GEWO USA Core Web Vitals, 30 days |
 
 The preview cards are what appear when you paste a link into an email, a message,
 LinkedIn or X. A link with a proper card gets opened noticeably more often than a
@@ -139,9 +148,10 @@ DOMAIN = "https://akintayoakingbehin.com"
 
 The case studies are built from primary sources, not invention:
 
-- **Table Tennis USA** — your own *TTS CVR Presentation* deck (all 14 slides): the
-  nine-item problem list, your seven-item role list, the homepage/trust/product-page
-  solutions, and all four months of analytics.
+- **Table Tennis Store** — Shopify Analytics screenshots for July, August and
+  September 2026 plus the latest 30 days, all in USD with human sessions only, and
+  the July conversion funnel (16,349 sessions / 899 carts / 466 checkouts / 234
+  orders). The free-shipping progress bar is captured in both of its states.
 - **GEWO USA** — the live site: navigation structure, the eight collection tiles and
   their product counts, the four trust claims, the six named sponsored players, the
   combo-specials architecture, and the company background (Ben Nisbet, the Mishel
@@ -152,13 +162,9 @@ The case studies are built from primary sources, not invention:
 
 **Three things to check before you send this anywhere:**
 
-1. **"Chess grandmaster"** (About page, "Off the clock"). Worth a hard look. If you
-   hold the formal FIDE Grandmaster title, leave it — it's remarkable and it will get
-   remembered. If you mean you're a very strong player rather than titled, change it,
-   because a prospect who checks and finds no FIDE record will discount everything
-   else on the site, including the numbers. "Serious chess player" or a rating costs
-   you almost nothing and carries no risk. Your call — edit the `human` list in
-   `build.py` or the card in `about.html`.
+1. ~~"Chess grandmaster"~~ — **settled.** The About page now says "a serious
+   habit" and states plainly that you are not a titled player. No FIDE claim is made
+   anywhere on the site.
 2. **"I read and reply to every email myself"** (About and Contact). True today;
    remove it if volume ever makes it untrue.
 3. **"Available for projects"** — the green status dot in the home page hero. To
@@ -170,13 +176,15 @@ The case studies are built from primary sources, not invention:
 - No performance data for GEWO USA or Paul David — both case studies say plainly
   that none is published, which is what makes the Table Tennis USA numbers
   believable.
-- **The traffic decline is shown, not hidden.** Visitors fell from 36.8k to 20.5k
-  between December and January. The case study puts that in the table and then makes
-  the argument it supports: orders held at 686 → 669, so the store converted the
-  traffic it had far more efficiently. Leave this in. A prospect who spots a hidden
-  decline stops believing the rest; a portfolio that volunteers it reads as someone
-  who understands their own data.
-- The qualifying note on the conversion figures stays for the same reason.
+- **The decline is shown, not hidden.** Table Tennis Store was already falling
+  before the work started: July down 31% on June, August down another 52% to 0.68%.
+  Both are in the table and in the screenshots. Leave them in. A prospect who spots
+  a hidden decline stops believing the rest; a portfolio that volunteers it reads as
+  someone who understands their own data.
+- **The "what I will and will not claim" block stays** for the same reason. It says
+  outright that not every point of the recovery is attributable to the work.
+- **GEWO USA has speed data but no conversion data, and says so. Paul David has
+  neither, and says so.** Do not let those drift.
 
 ---
 
