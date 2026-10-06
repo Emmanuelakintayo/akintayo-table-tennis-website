@@ -1939,18 +1939,60 @@ body.menu-open .menu { transform: translateY(0); visibility: visible; transition
 @media (max-width: 680px) { .receipts { grid-template-columns: minmax(0, 1fr); } }
 .receipts .shot__cap { font-size: .58rem; margin-top: .6rem; }
 
-/* About-page intro: photograph and text side by side, visible on load. */
+/* About-page intro: text on the left, cut-out photograph on the right.
+   The photograph has no frame here — it is a transparent cut-out sitting
+   directly on the page, so the only treatment is a soft glow behind it and a
+   fade at the bottom edge baked into the image's own alpha channel. Nothing
+   is drawn over the photograph itself. */
 .intro-grid {
   display: grid;
-  gap: clamp(1.8rem, 4vw, 3.4rem);
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(1.6rem, 4vw, 3.6rem);
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   align-items: center;
 }
-.intro-grid .portrait { aspect-ratio: 4 / 5; }
+.intro-grid__text { min-width: 0; }
+
+.cutout {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  /* No negative margin here. The hero clips its own overflow (it has to, for
+     the aura and the arc), so pulling the figure downward cut the bottom fade
+     off mid-way and left a hard horizontal edge across the jacket. */
+}
+.cutout::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 46%;
+  width: 104%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(44% 44% at 50% 44%, var(--accent-glow), transparent 70%),
+    radial-gradient(36% 36% at 62% 68%, var(--aura-b), transparent 72%);
+  filter: blur(42px);
+  pointer-events: none;
+}
+.cutout img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  max-width: min(100%, 460px);
+  height: auto;
+}
+
 @media (max-width: 860px) {
-  .intro-grid { grid-template-columns: 1fr; gap: clamp(1.4rem, 5vw, 2.2rem); }
-  .intro-grid .portrait { aspect-ratio: 5 / 4; }
-  .intro-grid .portrait img { object-position: center 18%; }
+  .intro-grid { grid-template-columns: 1fr; gap: clamp(.6rem, 3vw, 1.4rem); }
+  /* On a phone the headline and lead come first; the photograph follows. */
+  .intro-grid__text { order: 1; }
+  .cutout { order: 2; }
+  .cutout img { max-width: min(78%, 340px); }
+  .cutout::before { width: 86%; filter: blur(34px); }
 }
 
 /* Funnel readout drawn in CSS from the client's own numbers. */

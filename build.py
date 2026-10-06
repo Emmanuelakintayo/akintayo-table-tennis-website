@@ -227,6 +227,20 @@ def funnel(rows):
     return f'<div class="funnel" data-reveal>{out}</div>'
 
 
+def cutout(webp, png, alt, w, h):
+    """The supplied photograph with its background removed, sitting directly on
+    the page. No frame, no filter, no overlay — the only edit to the file is a
+    transparency fade at the bottom so it does not end on a hard horizontal cut.
+    WebP first for weight, PNG kept as the fallback for anything that cannot
+    read it."""
+    return f"""<div class="cutout">
+  <picture>
+    <source srcset="{webp}" type="image/webp">
+    <img src="{png}" alt="{alt}" width="{w}" height="{h}" fetchpriority="high" decoding="async">
+  </picture>
+</div>"""
+
+
 PROJECTS = [
     dict(no="01", name="Table Tennis USA", href="table-tennis-usa.html",
          tags=["Ecommerce", "Shopify", "Redesign &amp; CRO"],
@@ -675,6 +689,68 @@ def build_ttusa():
   </div>
 </section>
 
+<section class="results section">
+  <div class="wrap">
+    {shead("01", "Proof",
+           ["What happened", "to the number."],
+           "Four consecutive periods from the store&rsquo;s analytics, including the two that are not flattering.")}
+    <div style="margin-top:clamp(1.8rem,3.4vw,2.6rem)" data-reveal>
+      {receipts(
+        shot("tts-aug.jpg", "<b>Aug 2026 &mdash; 0.68%</b>, down 52% on July. The low point.", 934, 470),
+        shot("tts-sep.jpg", "<b>Sep 2026 &mdash; 1.95%</b>, up 191% on August.", 934, 467),
+        shot("tts-oct.jpg", "<b>5 Sep&ndash;5 Oct &mdash; 2.24%</b>, up 190% on the previous thirty days.", 934, 468))}
+      <p class="note" style="margin-top:1rem">Straight from the store&rsquo;s Shopify Analytics. USD, human sessions
+      only, and each capture still shows its own date range, so every figure below can be checked against its source.</p>
+    </div>
+
+    <div class="chartwrap">
+      <div class="chart" data-reveal="fade">
+        <figure class="chartfig chartfig--marked">
+          <figcaption>Site-wide conversion rate &mdash; Table Tennis Store, 2026</figcaption>
+          <div class="plot">
+            <div class="yaxis" aria-hidden="true"><span>2.50%</span><span>1.25%</span><span>0</span></div>
+            <div class="bars bars--four">
+              <div class="bars__mark" aria-hidden="true"><span>Work went in</span></div>
+              {bars}
+            </div>
+          </div>
+        </figure>
+      </div>
+      <div class="chart__note" data-reveal>
+        <p class="note">The store was already falling before the work started. July was down 31% on June, then
+        August dropped another 52% to 0.68%. September came back to 1.95%, and the most recent thirty days sit at
+        2.24% &mdash; above where the store was in July, before the slide bottomed out.</p>
+      </div>
+    </div>
+
+    <div class="statrow" style="margin-top:clamp(2.4rem,5vw,4rem)" data-stagger>{statrow}</div>
+
+    <div style="margin-top:clamp(2.6rem,5vw,4rem)" data-reveal>
+      <p class="mono eyebrow" style="margin-bottom:1.2rem">All four periods</p>
+      <div class="dtable-wrap">
+        <table class="dtable">
+          <thead><tr><th>Period</th><th>Phase</th><th class="num">Conversion rate</th><th class="num">Change on prior period</th></tr></thead>
+          <tbody>{trows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
+      <div class="split__l" data-reveal>
+        <h3 class="display h3" style="max-width:18ch">What I will and will not claim.</h3>
+      </div>
+      <div class="split__r prose" data-reveal data-delay="120">
+        <p>The store was sliding before I touched it, and that is on this page because leaving it off would make the
+        recovery look like something it is not.</p>
+        <p><strong>What I claim:</strong> the direction and the timing, both visible in the screenshots above.</p>
+        <p><strong>What I do not:</strong> that every point of the recovery is mine. Traffic mix and seasonality move
+        month to month, and conversion rate on its own does not isolate a cause. No revenue figure is claimed
+        anywhere on this site.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section section--tight">
   <div class="wrap">
     <div class="split">
@@ -692,9 +768,61 @@ def build_ttusa():
   </div>
 </section>
 
+<section class="results section">
+  <div class="wrap">
+    {shead("02", "Diagnosis",
+           ["Where the orders", "were leaking."],
+           "July 2026, before the work. Of every hundred arrivals, five reached a cart, and half of the ones who reached checkout never finished.")}
+
+    {julyfunnel}
+    <p class="note" style="margin-top:1rem">Each bar is that step&rsquo;s conversion from the step immediately
+    before it. Counts are exactly as Shopify recorded them for 1&ndash;31 July 2026.</p>
+
+    {shot("tts-jul.jpg", "July 2026 in the store&rsquo;s own Shopify Analytics. <b>16,349 sessions, 899 carts, 466 checkouts, 234 orders, 1.43% conversion</b> — and July itself already down 31% on June.", 934, 492)}
+
+    <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
+      <div class="split__l" data-reveal>
+        <h3 class="display h3" style="max-width:20ch">Two separate leaks, two different fixes.</h3>
+      </div>
+      <div class="split__r prose" data-reveal data-delay="120">
+        <p><strong>Before the cart.</strong> Only 5.5% got that far. People could not find the right product fast
+        enough, and nothing told them why to trust the store with a card.</p>
+        <p><strong>After the cart.</strong> Half of everyone at checkout left. In equipment retail that is usually
+        shipping cost arriving as a surprise at the final step.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
+  <div class="wrap">
+    {shead("03", "The shipping fix",
+           ["Shipping stopped being", "a surprise at the end."],
+           "Two changes aimed squarely at the second leak.")}
+
+    <div class="split" style="margin-top:clamp(1.6rem,3vw,2.4rem)">
+      <div class="split__l prose" data-reveal>
+        <p>Shipping options were rebuilt around what customers actually buy. A rubber sheet and a full-size table
+        are not the same parcel and should never have been offered the same way.</p>
+        <p>Then the threshold was made visible. A <strong>free shipping progress bar</strong> sits in the side cart
+        and at checkout, counting in real money toward the $75 mark.</p>
+      </div>
+      <div class="split__r prose" data-reveal data-delay="120">
+        <p>It does two jobs. Removes the late surprise that was killing checkouts, and gives a shopper a reason to
+        add one more item rather than leave. Both states below, from the live store.</p>
+      </div>
+    </div>
+
+    {shotgrid(
+      shot("tts-cart-partial.jpg", "Not there yet. <b>&ldquo;You&rsquo;re $20.03 away from free shipping&rdquo;</b> — a part-filled bar and a specific number, shown while there is still time to act on it.", 1347, 633),
+      shot("tts-cart-unlocked.jpg", "Threshold cleared. <b>&ldquo;You&rsquo;ve unlocked FREE SHIPPING&rdquo;</b> — confirmed in the cart, long before checkout can take it back.", 1354, 675, url="tabletennisstore.us"),
+      cls="shotgrid--2")}
+  </div>
+</section>
+
 <section class="section">
   <div class="wrap">
-    {shead("01", "The problem",
+    {shead("04", "The problem",
            ["Nine things standing", "between a visitor", "and an order."],
            "Everything below was documented before any design work started. The list is what the project was scoped against.")}
     <div class="probs" data-stagger>{probs}</div>
@@ -707,7 +835,7 @@ def build_ttusa():
 <section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
   <div class="court" aria-hidden="true"></div>
   <div class="wrap" style="position:relative;z-index:2">
-    {shead("02", "The solution",
+    {shead("05", "The solution",
            ["What actually", "changed."],
            "Three areas of work. Each addresses specific items on the problem list rather than a general sense that things could look better.")}
     <div class="deck" data-stagger>{solcards}</div>
@@ -735,121 +863,6 @@ def build_ttusa():
       </div>
       <div class="split__r" data-reveal data-delay="120">
         <ul class="slist" style="margin-top:0">{rolelist}</ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="results section">
-  <div class="wrap">
-    {shead("03", "Diagnosis",
-           ["Where the orders", "were leaking."],
-           "July 2026, before the work. Of every hundred arrivals, five reached a cart, and half of the ones who reached checkout never finished.")}
-
-    {julyfunnel}
-    <p class="note" style="margin-top:1rem">Each bar is that step&rsquo;s conversion from the step immediately
-    before it. Counts are exactly as Shopify recorded them for 1&ndash;31 July 2026.</p>
-
-    {shot("tts-jul.jpg", "July 2026 in the store&rsquo;s own Shopify Analytics. <b>16,349 sessions, 899 carts, 466 checkouts, 234 orders, 1.43% conversion</b> — and July itself already down 31% on June.", 934, 492)}
-
-    <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
-      <div class="split__l" data-reveal>
-        <h3 class="display h3" style="max-width:20ch">Two separate leaks, two different fixes.</h3>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p><strong>Before the cart.</strong> Only 5.5% got that far. People could not find the right product fast
-        enough, and nothing told them why to trust the store with a card.</p>
-        <p><strong>After the cart.</strong> Half of everyone at checkout left. In equipment retail that is usually
-        shipping cost arriving as a surprise at the final step.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="wrap">
-    {shead("04", "The shipping fix",
-           ["Shipping stopped being", "a surprise at the end."],
-           "Two changes aimed squarely at the second leak.")}
-
-    <div class="split" style="margin-top:clamp(1.6rem,3vw,2.4rem)">
-      <div class="split__l prose" data-reveal>
-        <p>Shipping options were rebuilt around what customers actually buy. A rubber sheet and a full-size table
-        are not the same parcel and should never have been offered the same way.</p>
-        <p>Then the threshold was made visible. A <strong>free shipping progress bar</strong> sits in the side cart
-        and at checkout, counting in real money toward the $75 mark.</p>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>It does two jobs. Removes the late surprise that was killing checkouts, and gives a shopper a reason to
-        add one more item rather than leave. Both states below, from the live store.</p>
-      </div>
-    </div>
-
-    {shotgrid(
-      shot("tts-cart-partial.jpg", "Not there yet. <b>&ldquo;You&rsquo;re $20.03 away from free shipping&rdquo;</b> — a part-filled bar and a specific number, shown while there is still time to act on it.", 1347, 633),
-      shot("tts-cart-unlocked.jpg", "Threshold cleared. <b>&ldquo;You&rsquo;ve unlocked FREE SHIPPING&rdquo;</b> — confirmed in the cart, long before checkout can take it back.", 1354, 675, url="tabletennisstore.us"),
-      cls="shotgrid--2")}
-  </div>
-</section>
-
-<section class="results section">
-  <div class="wrap">
-    {shead("05", "Proof",
-           ["What happened", "to the number."],
-           "Four consecutive periods from the store&rsquo;s analytics, including the two that are not flattering.")}
-    <div class="chartwrap">
-      <div class="chart" data-reveal="fade">
-        <figure class="chartfig chartfig--marked">
-          <figcaption>Site-wide conversion rate &mdash; Table Tennis Store, 2026</figcaption>
-          <div class="plot">
-            <div class="yaxis" aria-hidden="true"><span>2.50%</span><span>1.25%</span><span>0</span></div>
-            <div class="bars bars--four">
-              <div class="bars__mark" aria-hidden="true"><span>Work went in</span></div>
-              {bars}
-            </div>
-          </div>
-        </figure>
-      </div>
-      <div class="chart__note" data-reveal>
-        <p class="note">The store was already falling before the work started. July was down 31% on June, then
-        August dropped another 52% to 0.68%. September came back to 1.95%, and the most recent thirty days sit at
-        2.24% &mdash; above where the store was in July, before the slide bottomed out.</p>
-      </div>
-    </div>
-
-    <div class="statrow" style="margin-top:clamp(2.4rem,5vw,4rem)" data-stagger>{statrow}</div>
-
-    <div style="margin-top:clamp(2.8rem,5.5vw,4.4rem)" data-reveal>
-      <p class="mono eyebrow" style="margin-bottom:1.2rem">The receipts</p>
-      {receipts(
-        shot("tts-aug.jpg", "<b>Aug 2026 &mdash; 0.68%</b>, down 52% on July. The low point.", 934, 470),
-        shot("tts-sep.jpg", "<b>Sep 2026 &mdash; 1.95%</b>, up 191% on August.", 934, 467),
-        shot("tts-oct.jpg", "<b>5 Sep&ndash;5 Oct &mdash; 2.24%</b>, up 190% on the previous thirty days.", 934, 468))}
-      <p class="note" style="margin-top:1rem">Shopify Analytics, USD, human sessions only. Date ranges are visible
-      in each capture so every figure on this page can be checked against its source.</p>
-    </div>
-
-    <div style="margin-top:clamp(2.6rem,5vw,4rem)" data-reveal>
-      <p class="mono eyebrow" style="margin-bottom:1.2rem">All four periods</p>
-      <div class="dtable-wrap">
-        <table class="dtable">
-          <thead><tr><th>Period</th><th>Phase</th><th class="num">Conversion rate</th><th class="num">Change on prior period</th></tr></thead>
-          <tbody>{trows}</tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
-      <div class="split__l" data-reveal>
-        <h3 class="display h3" style="max-width:18ch">What I will and will not claim.</h3>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>The store was sliding before I touched it, and that is on this page because leaving it off would make the
-        recovery look like something it is not.</p>
-        <p><strong>What I claim:</strong> the direction and the timing, both visible in the screenshots above.</p>
-        <p><strong>What I do not:</strong> that every point of the recovery is mine. Traffic mix and seasonality move
-        month to month, and conversion rate on its own does not isolate a cause. No revenue figure is claimed
-        anywhere on this site.</p>
       </div>
     </div>
   </div>
@@ -947,7 +960,7 @@ def build_gewo():
   <div class="wrap hero__inner">
     <p class="mono eyebrow" data-reveal="fade" data-onload>Case study 02 &mdash; Shopify ecommerce</p>
     <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('GEWO', '<span class="accent">USA</span>', cls="display case-hero__title", onload=True)}
+      {lines('GEWO <span class="accent">USA</span>', cls="display case-hero__title", onload=True)}
     </div>
     <div class="hero__body">
       <div class="hero__lead">
@@ -1166,7 +1179,7 @@ def build_paul():
   <div class="wrap hero__inner">
     <p class="mono eyebrow" data-reveal="fade" data-onload>Case study 03 &mdash; Coaching practice</p>
     <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('Paul', '<span class="accent">David</span>', cls="display case-hero__title", onload=True)}
+      {lines('Paul <span class="accent">David</span>', cls="display case-hero__title", onload=True)}
     </div>
     <div class="hero__body">
       <div class="hero__lead">
@@ -1428,8 +1441,7 @@ def build_about():
   <div class="wrap hero__inner">
     <p class="mono eyebrow" data-reveal="fade" data-onload>About &mdash; Akingbehin Akintayo</p>
     <div class="intro-grid" style="margin-top:clamp(1.6rem,3.4vw,2.6rem)">
-      {portrait("akintayo.jpg", "Akingbehin Akintayo", tag="Akingbehin Akintayo", eager=True)}
-      <div>
+      <div class="intro-grid__text">
         {lines('A designer who', 'picked <span class="ital accent">one</span> sport', 'on purpose.', cls="display h2", onload=True)}
         <div class="prose" style="margin-top:clamp(1.2rem,2.4vw,1.8rem)">
           <p class="lead" data-reveal data-onload>I am an ecommerce web designer in Osun State, Nigeria, and I work
@@ -1438,6 +1450,7 @@ def build_about():
           screenshots attached rather than described.</p>
         </div>
       </div>
+      {cutout("akintayo-cutout.webp", "akintayo-cutout.png", "Akingbehin Akintayo", 1100, 1545)}
     </div>
   </div>
 </section>

@@ -91,7 +91,8 @@ The entire image set is seven files, already built and sitting beside the HTML:
 | `og-gewo.jpg` | Link preview card for the GEWO USA case study |
 | `og-paul.jpg` | Link preview card for the Paul David case study |
 | `favicon.svg` | Browser tab icon |
-| `akintayo.jpg` | Your portrait — home page, and the top of the About page |
+| `akintayo.jpg` | Your portrait, framed — home page |
+| `akintayo-cutout.webp` / `.png` | Your background-removed portrait — top of the About page. WebP is served first; the PNG is the fallback. Both carry an alpha fade at the bottom so the figure dissolves into the page instead of ending on a hard edge. |
 | `akintayo-seated.jpg` | Your portrait — the personal block on the contact page |
 | `tts-jul.jpg` | July 2026 funnel, Shopify Analytics — Table Tennis Store case study |
 | `tts-aug.jpg` `tts-sep.jpg` `tts-oct.jpg` | The three "receipts" under the conversion chart |
@@ -167,7 +168,11 @@ The case studies are built from primary sources, not invention:
    anywhere on the site.
 2. **"I read and reply to every email myself"** (About and Contact). True today;
    remove it if volume ever makes it untrue.
-3. **"Available for projects"** — the green status dot in the home page hero. To
+3. **The About-page portrait is your own cut-out file.** Nothing was retouched:
+   the only edit is a transparency fade on the bottom 17% of the alpha channel.
+   If you ever swap the file, keep that fade or the figure will end on a hard
+   horizontal line, because the hero clips its own overflow.
+4. **"Available for projects"** — the green status dot in the home page hero. To
    turn it off, delete the `<span class="status">…</span>` block in `index.html`.
 
 ### What the site deliberately does *not* claim
