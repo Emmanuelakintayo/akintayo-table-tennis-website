@@ -308,3 +308,84 @@
     el.textContent = String(new Date().getFullYear());
   });
 })();
+
+/* ---------------------------------------------------------------- lightbox
+   Opens the original capture at its real size. Keyboard operable, focus is
+   trapped while open and returned to the trigger on close, and the caption
+   plus alt text are what a screen reader announces. No image processing
+   happens here: the same file the page already loaded is shown larger. */
+(function () {
+  var triggers = document.querySelectorAll("[data-lightbox]");
+  if (!triggers.length) return;
+
+  var box = null, lastFocus = null;
+
+  function close() {
+    if (!box) return;
+    document.removeEventListener("keydown", onKey, true);
+    box.remove();
+    box = null;
+    document.documentElement.style.overflow = "";
+    if (lastFocus) lastFocus.focus();
+  }
+
+  function onKey(e) {
+    if (!box) return;
+    if (e.key === "Escape") { e.preventDefault(); close(); return; }
+    if (e.key !== "Tab") return;
+    /* Only the close button is focusable inside, so keep Tab on it. */
+    var btn = box.querySelector(".lbox__close");
+    e.preventDefault();
+    if (btn) btn.focus();
+  }
+
+  function open(trigger) {
+    var src = trigger.getAttribute("data-lightbox");
+    var alt = trigger.getAttribute("data-alt") || "";
+    var cap = trigger.getAttribute("data-caption") || "";
+    lastFocus = trigger;
+
+    box = document.createElement("div");
+    box.className = "lbox";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+    box.setAttribute("aria-label", alt || "Screenshot");
+
+    var img = document.createElement("img");
+    img.className = "lbox__img";
+    img.src = src;
+    img.alt = alt;
+
+    var btn = document.createElement("button");
+    btn.className = "lbox__close";
+    btn.type = "button";
+    btn.setAttribute("aria-label", "Close the screenshot");
+    btn.innerHTML = "&times;";
+    btn.addEventListener("click", close);
+
+    box.appendChild(btn);
+    box.appendChild(img);
+
+    if (cap) {
+      var p = document.createElement("p");
+      p.className = "lbox__cap";
+      p.innerHTML = cap;
+      box.appendChild(p);
+    }
+
+    box.addEventListener("click", function (e) {
+      if (e.target === box) close();
+    });
+
+    document.body.appendChild(box);
+    document.documentElement.style.overflow = "hidden";
+    document.addEventListener("keydown", onKey, true);
+    btn.focus();
+  }
+
+  for (var i = 0; i < triggers.length; i++) {
+    (function (t) {
+      t.addEventListener("click", function (e) { e.preventDefault(); open(t); });
+    })(triggers[i]);
+  }
+})();

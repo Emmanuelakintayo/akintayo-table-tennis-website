@@ -195,18 +195,57 @@ def portrait(src, alt, tag=None, cls="", eager=False):
 </div>"""
 
 
-def shot(src, cap, w, h, url=None, cls=""):
+def shot(src, cap, w, h, url=None, cls="", alt=None, zoom=True):
     """A real screenshot, presented as evidence. The brand treatment is on the
     frame only; the image itself is never filtered, tinted or overlaid, so what
     a visitor sees is what the client's analytics or storefront actually showed.
-    A chrome bar is added only for captures of live websites."""
+    A chrome bar is added only for captures of live websites.
+
+    alt carries the figure in words, for screen readers and for anyone whose
+    images fail to load. cap is the visible caption and states the report, the
+    date range and when the capture was taken. zoom wraps the frame in a real
+    button so the original file opens full size by click or keyboard."""
     bar = ('<div class="shot__bar"><span class="shot__dots"><i></i><i></i><i></i></span>'
            f'<span class="shot__url">{url}</span></div>') if url else ""
     c = (" " + cls) if cls else ""
+    a = alt if alt else re.sub(r"<[^>]+>", "", cap)
+    img = (f'<img src="{src}" alt="{a}" width="{w}" height="{h}" '
+           f'loading="lazy" decoding="async">')
+    if zoom:
+        esc = a.replace('"', "&quot;")
+        ecap = re.sub(r"<[^>]+>", "", cap).replace('"', "&quot;")
+        frame = (f'<button type="button" class="shot__open" data-lightbox="{src}" '
+                 f'data-alt="{esc}" data-caption="{ecap}" '
+                 f'aria-label="Open full size: {esc}">'
+                 f'<span class="shot__frame">{bar}{img}'
+                 f'<span class="shot__zoom">Tap to enlarge</span></span></button>')
+    else:
+        frame = f'<div class="shot__frame">{bar}{img}</div>'
     return f"""<figure class="shot{c}" data-reveal>
-  <div class="shot__frame">{bar}<img src="{src}" alt="{cap}" width="{w}" height="{h}" loading="lazy" decoding="async"></div>
+  {frame}
   <figcaption class="shot__cap">{cap}</figcaption>
 </figure>"""
+
+
+def obars(rows):
+    """Completed orders by period. Counts, not rates: a change in how sessions
+    are measured cannot move these bars, which is the whole point of leading
+    with them."""
+    top = max(r[1] for r in rows)
+    out = ""
+    for i, (label, val, now) in enumerate(rows):
+        cls = " obar--now" if now else ""
+        out += (f'<div class="obar{cls}"><p class="obar__v">{val:,}</p>'
+                f'<div class="obar__col" style="--h:{val / top * 100:.0f}%;'
+                f'--d:{i * .13:.2f}s"></div>'
+                f'<span class="obar__x">{label}</span></div>')
+    return f'<div class="obars" data-reveal>{out}</div>'
+
+
+def flag(title, *paras):
+    ps = "".join(f"<p>{x}</p>" for x in paras)
+    return f'<div class="flag" data-reveal><h4>{title}</h4>{ps}</div>'
+
 
 def shotgrid(*shots, cls=""):
     c = (" " + cls) if cls else ""
@@ -244,8 +283,8 @@ def cutout(webp, png, alt, w, h):
 PROJECTS = [
     dict(no="01", name="Table Tennis USA", href="table-tennis-usa.html",
          tags=["Ecommerce", "Shopify", "Redesign &amp; CRO"],
-         res="0.68% &rarr; 2.24% conversion rate",
-         stat="2.24%", sub="Conversion rate, latest 30 days — from 0.68% at the August low", live="tabletennisstore.us"),
+         res="234 &rarr; 615 completed orders a month",
+         stat="615", sub="Completed orders in the 30 days to 4 Nov 2026 — from 234 in July", live="tabletennisstore.us"),
     dict(no="02", name="GEWO USA", href="gewo-usa.html",
          tags=["Ecommerce", "Shopify", "Manufacturer store"],
          res="1.2s largest paint, zero layout shift",
@@ -370,15 +409,43 @@ def build_home():
     <a class="proof__link" href="table-tennis-usa.html" data-cursor="Case study">
       <div class="proof__k">
         <p class="mono mono--accent">Flagship project</p>
-        <p class="mono">Table Tennis Store &mdash; conversion rate, August to October 2026</p>
+        <p class="mono">Table Tennis USA (tabletennisstore.us) &mdash; completed orders a month</p>
       </div>
       <div class="proof__figs">
-        <span class="fig">0.68%</span><span class="fig fig__sep">&rarr;</span>
-        <span class="fig">1.95%</span><span class="fig fig__sep">&rarr;</span>
-        <span class="fig fig--now">2.24%</span>
+        <span class="fig">234</span><span class="fig fig__sep">&rarr;</span>
+        <span class="fig fig--now">615</span>
       </div>
-      <p class="proof__go mono mono--fg">Screenshots attached<br>&mdash; read it &rarr;</p>
+      <p class="proof__go mono mono--fg">July to 4 Nov 2026<br>read the case &rarr;</p>
     </a>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="wrap">
+    <div class="split" style="align-items:flex-end">
+      <div class="split__l" data-reveal>
+        <p class="mono eyebrow">The evidence, not the adjective</p>
+        <h2 class="display h3" style="margin-top:1.1rem;max-width:17ch">Open any of these. They are his dashboard, not mine.</h2>
+      </div>
+      <div class="split__r prose" data-reveal data-delay="120">
+        <p>Carts rose about a third between July and November. Completed orders rose by 163%. The share of carts
+        that made it as far as checkout went from half to almost all.</p>
+        <p>The case study shows every period, including the two months the store was falling, and explains the one
+        number on it that cannot be taken at face value.</p>
+      </div>
+    </div>
+    {shotgrid(
+      shot("tts-nov-funnel.jpg",
+           "Shopify Analytics, 5 Oct&ndash;4 Nov 2026. <b>1,194 carts, 1,113 checkouts, 615 orders.</b> Captured 4 November 2026.",
+           1163, 280,
+           alt="Shopify Analytics for 5 October to 4 November 2026: 15,516 sessions, 1,194 added to cart, 1,113 reached checkout, 615 completed checkout, conversion rate 3.96%"),
+      shot("tts-jul.jpg",
+           "Shopify Analytics, 1&ndash;31 July 2026. <b>899 carts, 466 checkouts, 234 orders.</b> Captured September 2026.",
+           934, 492,
+           alt="Shopify Analytics for July 2026: 16,349 sessions, 899 added to cart, 466 reached checkout, 234 completed checkout, conversion rate 1.43%"),
+      cls="shotgrid--2")}
+    <p class="updated" style="margin-top:1.4rem" data-reveal>Last updated 4 November 2026 &middot;
+    <a href="proof.html">See the proof log</a></p>
   </div>
 </section>
 
@@ -472,7 +539,7 @@ def build_home():
         <div class="prose" data-reveal data-delay="120">
           <p>I am Akingbehin Akintayo. I read your email, go through your store, design the pages and write the
           code that ships them. <strong>Nobody else is on the thread.</strong></p>
-          <p>On Table Tennis Store, the person who mapped the buying path was the same person who rebuilt it.</p>
+          <p>On Table Tennis USA, the person who mapped the buying path was the same person who rebuilt it.</p>
         </div>
         <div class="creds" data-reveal data-delay="180">
           <span class="pill">Osun State, Nigeria &mdash; working worldwide</span>
@@ -494,7 +561,8 @@ def build_home():
     return page("index.html", "AKINTAYO — Website Design for Table Tennis",
                 "Website design, ecommerce and conversion work for the table tennis industry — "
                 "brands, stores, distributors, clubs and coaches. Case study: Table Tennis USA, "
-                "conversion rate 0.68% to 2.24%, with the analytics screenshots attached.", "index.html", body)
+                "completed orders from 234 in July 2026 to 615 in the thirty days to 4 November, with every "
+                "Shopify Analytics screenshot attached.", "index.html", body)
 
 
 # ===================================================================== WORK ==
@@ -531,8 +599,9 @@ def build_work():
         <h2 class="bigquote" style="margin-top:1.2rem">Only one of these projects has published numbers. I say so on the other two.</h2>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>Table Tennis Store has four consecutive periods of analytics, screenshots attached, including the two
-        months it was falling. GEWO USA has speed data but no conversion data. Paul David has neither, and says so.</p>
+        <p>Table Tennis USA has four consecutive periods of analytics, screenshots attached and openable, including
+        the two months the store was falling and a note on the one figure that cannot be taken at face value.
+        GEWO USA is a design case with no conversion data. Paul David has neither, and says so.</p>
         <p><strong>A portfolio is worth more when you can trust the parts that are not flattering.</strong></p>
       </div>
     </div>
@@ -616,21 +685,31 @@ def build_ttusa():
         ("New arrivals", "A reason for returning customers to look again."),
     ])
 
-    # Conversion rate, four consecutive periods as recorded in Shopify.
-    # Scale 0 - 2.50%, gridline at 1.25%. Heights are proportional to that scale.
-    data = [("Jul", "1.43%", 57, "before"), ("Aug", "0.68%", 27, "before"),
-            ("Sep", "1.95%", 78, "after"),  ("Oct", "2.24%", 90, "after")]
-    bars = ""
-    for i, (m, v, h, phase) in enumerate(data):
-        bars += f"""<div class="bar bar--{phase}">
-  <p class="bar__val">{v}</p>
-  <div class="bar__col" style="--h:{h}%;--d:{i*150}ms"></div>
-  <span class="bar__x">{m}</span>
-</div>"""
+    # Completed online-store checkouts, four consecutive periods. Counts rather
+    # than rates, because August's session count was inflated by junk traffic and
+    # Shopify changed how sessions are measured on 21 Sept 2026. Neither of those
+    # can move an order count.
+    orderbars = obars([
+        ("Jul 2026", 234, False),
+        ("Aug 2026", 296, False),
+        ("Sep 2026", 353, False),
+        ("5 Oct&ndash;4 Nov", 615, True),
+    ])
 
-    # July's funnel — the diagnosis. Each bar is that step's conversion from the
-    # step immediately before it, which is how a funnel is read. Absolute counts
-    # are the figures Shopify recorded.
+    # The funnel, every period, exactly as the dashboard reported it.
+    funnelrows = [
+        ("Jul 1&ndash;31, 2026",    "16,349", "899",   "466",   "234", "1.43%", False),
+        ("Aug 1&ndash;31, 2026",    "43,520", "1,076", "608",   "296", "0.68%", True),
+        ("Sep 1&ndash;30, 2026",    "18,037", "1,084", "719",   "353", "1.95%", False),
+        ("5 Oct&ndash;4 Nov, 2026", "15,516", "1,194", "1,113", "615", "3.96%", False),
+    ]
+    trows = ""
+    for period, sess, carts, checks, done, cvr, split in funnelrows:
+        cls = ' class="is-split"' if split else ""
+        trows += (f'<tr{cls}><td>{period}</td><td class="num">{sess}</td>'
+                  f'<td class="num">{carts}</td><td class="num">{checks}</td>'
+                  f'<td class="num hl">{done}</td><td class="num">{cvr}</td></tr>')
+
     julyfunnel = funnel([
         ("Sessions",           "16,349", "all traffic",        100,  False),
         ("Added to cart",      "899",    "5.5% of sessions",   5.5,  False),
@@ -638,24 +717,18 @@ def build_ttusa():
         ("Completed checkout", "234",    "50% of checkouts",   50,   True),
     ])
 
-    rows = [
-        ("Jul 1&ndash;31, 2026",    "Before", "1.43%", "&minus;31%", False),
-        ("Aug 1&ndash;31, 2026",    "Before", "0.68%", "&minus;52%", True),
-        ("Sep 1&ndash;30, 2026",    "After",  "1.95%", "+191%",      False),
-        ("Sep 5&ndash;Oct 5, 2026", "After",  "2.24%", "+190%",      False),
-    ]
-    trows = ""
-    for period, phase, cvr, delta, split in rows:
-        cls = ' class="is-split"' if split else ""
-        hl = ' class="num hl"' if phase == "After" else ' class="num"'
-        trows += (f'<tr{cls}><td>{period}</td><td class="phase">{phase}</td>'
-                  f'<td{hl}>{cvr}</td><td class="num">{delta}</td></tr>')
+    nowfunnel = funnel([
+        ("Sessions",           "15,516", "all traffic",        100,  False),
+        ("Added to cart",      "1,194",  "7.7% of sessions",   7.7,  False),
+        ("Reached checkout",   "1,113",  "93% of those carts", 93,   False),
+        ("Completed checkout", "615",    "55% of checkouts",   55,   True),
+    ])
 
     stats = [
-        ("2.24%", "Conversion rate, 5 September to 5 October 2026", True),
-        ("+190%", "Against the previous thirty days, as Shopify reports it", False),
-        ("5.5%", "Share of July sessions that ever reached a cart &mdash; the leak the work targeted", False),
-        ("$75", "Free shipping threshold the new cart progress bar counts toward", False),
+        ("+163%", "Completed orders, July against the thirty days to 4 November 2026", True),
+        ("+33%", "Carts over the same period &mdash; a third more carts, two and a half times the orders", False),
+        ("26% &rarr; 52%", "Share of carts that became an order", False),
+        ("50% &rarr; 93%", "Share of carts that reached checkout at all", False),
     ]
     statrow = "".join(
         f"""<div class="stat{' stat--hl' if hl else ''}" data-reveal>
@@ -673,8 +746,8 @@ def build_ttusa():
     <div class="hero__body">
       <div class="hero__lead">
         <p class="lead lead--wide" data-reveal data-onload>A Shopify store selling table tennis equipment across
-        the United States. It was sliding when I came in, bottomed at <strong>0.68%</strong> in August 2026, and the
-        latest thirty days sit at <strong>2.24%</strong>. Every figure here has its screenshot attached.</p>
+        the United States. In July it completed <strong>234</strong> orders. In the thirty days to 4 November 2026 it
+        completed <strong>615</strong>. Every figure on this page opens as the screenshot it came from.</p>
       </div>
     </div>
     {livebtn("https://tabletennisstore.us/", "Open the live store")}
@@ -684,7 +757,8 @@ def build_ttusa():
         ("Platform", "Shopify"),
         ("Role", "UX design, theme customisation, CRO, SEO"),
         ("Live site", '<a href="https://tabletennisstore.us/" target="_blank" rel="noopener">tabletennisstore.us &#8599;</a>'),
-        ("Measured", "Jul&ndash;Oct 2026, Shopify Analytics"),
+        ("Measured", "Jul&ndash;Nov 2026, Shopify Analytics"),
+        ("Last updated", '4 Nov 2026 &middot; <a href="proof.html">proof log</a>'),
     ])}
   </div>
 </section>
@@ -692,47 +766,55 @@ def build_ttusa():
 <section class="results section">
   <div class="wrap">
     {shead("01", "Proof",
-           ["What happened", "to the number."],
-           "Four consecutive periods from the store&rsquo;s analytics, including the two that are not flattering.")}
-    <div style="margin-top:clamp(1.8rem,3.4vw,2.6rem)" data-reveal>
-      {receipts(
-        shot("tts-aug.jpg", "<b>Aug 2026 &mdash; 0.68%</b>, down 52% on July. The low point.", 934, 470),
-        shot("tts-sep.jpg", "<b>Sep 2026 &mdash; 1.95%</b>, up 191% on August.", 934, 467),
-        shot("tts-oct.jpg", "<b>5 Sep&ndash;5 Oct &mdash; 2.24%</b>, up 190% on the previous thirty days.", 934, 468))}
-      <p class="note" style="margin-top:1rem">Straight from the store&rsquo;s Shopify Analytics. USD, human sessions
-      only, and each capture still shows its own date range, so every figure below can be checked against its source.</p>
-    </div>
+           ["Same store.", "Two and a half times", "the orders."],
+           "Completed checkouts, four consecutive periods. Counts rather than percentages, for a reason explained below.")}
 
-    <div class="chartwrap">
-      <div class="chart" data-reveal="fade">
-        <figure class="chartfig chartfig--marked">
-          <figcaption>Site-wide conversion rate &mdash; Table Tennis Store, 2026</figcaption>
-          <div class="plot">
-            <div class="yaxis" aria-hidden="true"><span>2.50%</span><span>1.25%</span><span>0</span></div>
-            <div class="bars bars--four">
-              <div class="bars__mark" aria-hidden="true"><span>Work went in</span></div>
-              {bars}
-            </div>
-          </div>
-        </figure>
-      </div>
-      <div class="chart__note" data-reveal>
-        <p class="note">The store was already falling before the work started. July was down 31% on June, then
-        August dropped another 52% to 0.68%. September came back to 1.95%, and the most recent thirty days sit at
-        2.24% &mdash; above where the store was in July, before the slide bottomed out.</p>
-      </div>
-    </div>
+    {orderbars}
+    <p class="note" style="margin-top:1.2rem">Completed online-store checkouts, as recorded in the store&rsquo;s
+    Shopify Analytics. Online store only &mdash; this excludes the store&rsquo;s other sales channels.</p>
+
+    {shot("tts-nov-funnel.jpg",
+          "Shopify Analytics, conversion rate breakdown. <b>15,516 sessions, 1,194 carts, 1,113 checkouts, 615 completed.</b> Range 5 Oct&ndash;4 Nov 2026 against 4 Sept&ndash;4 Oct 2026. Captured 4 November 2026.",
+          1163, 280,
+          alt="Shopify Analytics for 5 October to 4 November 2026: 15,516 sessions, 1,194 added to cart, 1,113 reached checkout, 615 completed checkout, conversion rate 3.96%")}
 
     <div class="statrow" style="margin-top:clamp(2.4rem,5vw,4rem)" data-stagger>{statrow}</div>
 
     <div style="margin-top:clamp(2.6rem,5vw,4rem)" data-reveal>
-      <p class="mono eyebrow" style="margin-bottom:1.2rem">All four periods</p>
+      <p class="mono eyebrow" style="margin-bottom:1.2rem">Every period, every stage</p>
       <div class="dtable-wrap">
         <table class="dtable">
-          <thead><tr><th>Period</th><th>Phase</th><th class="num">Conversion rate</th><th class="num">Change on prior period</th></tr></thead>
+          <thead><tr><th>Period</th><th class="num">Sessions</th><th class="num">Carts</th><th class="num">Checkouts</th><th class="num">Orders</th><th class="num">Conv. rate</th></tr></thead>
           <tbody>{trows}</tbody>
         </table>
       </div>
+      <p class="note" style="margin-top:1rem">Read the Orders column. It rises every period. The conversion-rate
+      column does not behave the same way, and the two call-outs below explain why.</p>
+    </div>
+
+    <div style="margin-top:clamp(2.6rem,5vw,4rem)">
+      <p class="mono eyebrow" style="margin-bottom:1.2rem" data-reveal>Why this page leads with orders, not conversion rate</p>
+
+      {flag("1 &mdash; August&rsquo;s traffic was not real",
+            "August recorded 43,520 sessions against July&rsquo;s 16,349. Almost all of the increase came from one "
+            "place: <strong>Singapore went from a handful of sessions to 21,500</strong>, and desktop sessions rose "
+            "268%. By September it had collapsed back to 789.",
+            "Conversion rate is orders divided by sessions. Roughly 25,000 sessions that were never going to buy "
+            "anything pushed August down to 0.68%. <strong>The store did not get five times worse in August, and it "
+            "has not become five times better since.</strong> Anyone who quotes 0.68% to 3.96% at you, including me, "
+            "is quoting a number with a hole in it.")}
+
+      {shot("tts-sep-location.jpg",
+            "Shopify Analytics, sessions by location, 1&ndash;30 Sept 2026 against 2&ndash;31 Aug 2026. The pale bar is August. <b>Singapore 21.5K falling to 789, down 96%.</b> Captured 4 November 2026.",
+            754, 330, cls="shot--narrow",
+            alt="Shopify sessions by location for September 2026 compared with August: Singapore down 96% from 21,500 sessions to 789, China down 80% from 4,100 to 818")}
+
+      {flag("2 &mdash; Shopify changed how it counts sessions",
+            "A notice on the analytics page reads: &ldquo;Beginning Sept 21, 2026, sessions and related metrics may "
+            "shift as Shopify Analytics enables better visibility into real shopper activity.&rdquo; A "
+            "<em>Definition change</em> marker sits on the September chart at that date.",
+            "So any conversion rate spanning 21 September is not a like-for-like comparison with one before it. "
+            "Order counts are unaffected, which is why they are the headline on this page.")}
     </div>
 
     <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
@@ -740,12 +822,13 @@ def build_ttusa():
         <h3 class="display h3" style="max-width:18ch">What I will and will not claim.</h3>
       </div>
       <div class="split__r prose" data-reveal data-delay="120">
-        <p>The store was sliding before I touched it, and that is on this page because leaving it off would make the
-        recovery look like something it is not.</p>
-        <p><strong>What I claim:</strong> the direction and the timing, both visible in the screenshots above.</p>
-        <p><strong>What I do not:</strong> that every point of the recovery is mine. Traffic mix and seasonality move
-        month to month, and conversion rate on its own does not isolate a cause. No revenue figure is claimed
-        anywhere on this site.</p>
+        <p><strong>What I claim:</strong> completed orders went 234, 296, 353, 615 across four consecutive periods,
+        carts rose about a third over the same stretch, and the share of carts that reached checkout went from half
+        to almost all. Every one of those is on a screenshot on this page.</p>
+        <p><strong>What I do not:</strong> that every order is down to me. Traffic mix and seasonality move month to
+        month, Black Friday trading sits inside the last window, and no single change isolates a cause.</p>
+        <p><strong>And what this page deliberately leaves out:</strong> revenue. The store&rsquo;s sales figures are
+        the client&rsquo;s to publish, not mine, so you will not find a dollar amount anywhere on this site.</p>
       </div>
     </div>
   </div>
@@ -774,11 +857,15 @@ def build_ttusa():
            ["Where the orders", "were leaking."],
            "July 2026, before the work. Of every hundred arrivals, five reached a cart, and half of the ones who reached checkout never finished.")}
 
+    <p class="mono eyebrow" style="margin-bottom:1rem" data-reveal>July 2026, before the work</p>
     {julyfunnel}
     <p class="note" style="margin-top:1rem">Each bar is that step&rsquo;s conversion from the step immediately
-    before it. Counts are exactly as Shopify recorded them for 1&ndash;31 July 2026.</p>
+    before it. Counts exactly as Shopify recorded them for 1&ndash;31 July 2026.</p>
 
-    {shot("tts-jul.jpg", "July 2026 in the store&rsquo;s own Shopify Analytics. <b>16,349 sessions, 899 carts, 466 checkouts, 234 orders, 1.43% conversion</b> — and July itself already down 31% on June.", 934, 492)}
+    {shot("tts-jul.jpg",
+          "Shopify Analytics, conversion rate breakdown, 1&ndash;31 July 2026 against 31 May&ndash;30 June 2026. <b>16,349 sessions, 899 carts, 466 checkouts, 234 orders.</b> July was itself down 31% on June. Captured September 2026.",
+          934, 492,
+          alt="Shopify Analytics for July 2026: 16,349 sessions, 899 added to cart, 466 reached checkout, 234 completed checkout, conversion rate 1.43%, down 31% on the previous period")}
 
     <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
       <div class="split__l" data-reveal>
@@ -790,6 +877,13 @@ def build_ttusa():
         <p><strong>After the cart.</strong> Half of everyone at checkout left. In equipment retail that is usually
         shipping cost arriving as a surprise at the final step.</p>
       </div>
+    </div>
+
+    <div style="margin-top:clamp(2.8rem,5.5vw,4.4rem)">
+      <p class="mono eyebrow" style="margin-bottom:1rem" data-reveal>The same funnel now</p>
+      {nowfunnel}
+      <p class="note" style="margin-top:1rem">5 October to 4 November 2026. The first leak narrowed a little.
+      <strong>The second one closed almost entirely:</strong> 93% of carts now reach checkout, against 52% in July.</p>
     </div>
   </div>
 </section>
@@ -814,8 +908,10 @@ def build_ttusa():
     </div>
 
     {shotgrid(
-      shot("tts-cart-partial.jpg", "Not there yet. <b>&ldquo;You&rsquo;re $20.03 away from free shipping&rdquo;</b> — a part-filled bar and a specific number, shown while there is still time to act on it.", 1347, 633),
-      shot("tts-cart-unlocked.jpg", "Threshold cleared. <b>&ldquo;You&rsquo;ve unlocked FREE SHIPPING&rdquo;</b> — confirmed in the cart, long before checkout can take it back.", 1354, 675, url="tabletennisstore.us"),
+      shot("tts-cart-partial.jpg", "Live store, side cart, not yet qualified. <b>&ldquo;You&rsquo;re $20.03 away from free shipping&rdquo;</b> — a part-filled bar and a specific number, shown while there is still time to act on it.", 1347, 633,
+           alt="The side cart on tabletennisstore.us showing a part-filled progress bar reading: you are $20.03 away from free shipping"),
+      shot("tts-cart-unlocked.jpg", "Live store, side cart, threshold cleared. <b>&ldquo;You&rsquo;ve unlocked FREE SHIPPING&rdquo;</b> — confirmed in the cart, long before checkout can take it back.", 1354, 675, url="tabletennisstore.us",
+           alt="The side cart on tabletennisstore.us showing a full progress bar reading: you have unlocked free shipping"),
       cls="shotgrid--2")}
   </div>
 </section>
@@ -895,8 +991,9 @@ def build_ttusa():
            "Send the URL and your current conversion rate. I will tell you where I think the orders are leaking before you pay me anything.")}
 """
     return page("table-tennis-usa.html", "Table Tennis USA — Case Study — AKINTAYO",
-                "Shopify UX and conversion work for Table Tennis Store. Conversion rate from a 0.68% low in "
-                "August 2026 to 2.24% across the latest thirty days, with the analytics screenshots attached.",
+                "Shopify UX and conversion work for Table Tennis USA (tabletennisstore.us). Completed orders went "
+                "from 234 in July 2026 to 615 in the thirty days to 4 November 2026, with every Shopify Analytics "
+                "screenshot attached and openable.",
                 "work.html", body, og_img="og-ttusa.jpg")
 
 
@@ -1087,7 +1184,7 @@ def build_gewo():
           <p class="mono mono--accent">What I am not claiming</p>
           <p>The speed numbers above are real and measured. <strong>There is no conversion or revenue data I can
           publish for this store</strong>, so none appears here. The conversion figures on this site belong to the
-          Table Tennis Store project and only to it.</p>
+          Table Tennis USA project and only to it.</p>
           <p>What GEWO USA shows is a different problem solved: a brand-owned catalogue rather than a multi-brand
           retailer, built fast. The store is live. Judge the execution there.</p>
         </div>
@@ -1397,7 +1494,7 @@ def build_services():
 def build_about():
     principles = [
         ("Proof over adjectives",
-         "Numbers where numbers exist. That rule is why the Table Tennis Store decline sits on this site beside the recovery."),
+         "Numbers where numbers exist. That rule is why the Table Tennis USA decline sits on this site beside the recovery."),
         ("The catalogue comes first",
          "Decisions made before anyone understands the products are guesses, and in this sport the guesses are usually wrong."),
         ("Build it, do not just draw it",
@@ -1670,12 +1767,147 @@ def build_404():
 
 
 # ==================================================================== EXTRAS ==
+def build_proof():
+    """A plain, checkable summary of where every figure on this site came from.
+    No dollar amounts, no customer data, no admin URL — those are the client's,
+    not mine. The point is that a visitor can audit the claims without asking."""
+
+    rows = [
+        ("1&ndash;31 Jul 2026",      "16,349", "899",   "466",   "234", "1.43%"),
+        ("1&ndash;31 Aug 2026",      "43,520", "1,076", "608",   "296", "0.68%"),
+        ("1&ndash;30 Sep 2026",      "18,037", "1,084", "719",   "353", "1.95%"),
+        ("5 Oct&ndash;4 Nov 2026",   "15,516", "1,194", "1,113", "615", "3.96%"),
+    ]
+    trows = "".join(
+        f'<tr><td>{a}</td><td class="num">{b}</td><td class="num">{c}</td>'
+        f'<td class="num">{d}</td><td class="num hl">{e}</td><td class="num">{f}</td></tr>'
+        for a, b, c, d, e, f in rows)
+
+    body = f"""
+<section class="hero" style="padding-bottom:clamp(1.4rem,3vw,2.2rem)">
+  <div class="aura" aria-hidden="true"></div>
+  <div class="wrap hero__inner">
+    <p class="mono eyebrow" data-reveal="fade" data-onload>Proof log</p>
+    <div style="margin-top:clamp(1.2rem,2.6vw,2rem)">
+      {lines('Where every number', 'on this site', 'came from.', cls="display h2", onload=True)}
+    </div>
+    <div class="hero__body">
+      <div class="hero__lead">
+        <p class="lead" data-reveal data-onload>Every figure traces to a dated screenshot of the client&rsquo;s own
+        Shopify Analytics. Nothing here is estimated, rounded up or recalled from memory.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="wrap">
+    {meta_rail([
+        ("Store", "Table Tennis USA (tabletennisstore.us)"),
+        ("Source", "Shopify Analytics, analytics overview"),
+        ("Currency", "USD"),
+        ("Sessions", "Human sessions, online store only"),
+        ("Captured", "4 November 2026"),
+        ("Method", "Read-only. Nothing in the store was changed."),
+    ])}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {shead("01", "The figures",
+           ["Four periods,", "every stage."],
+           "Online-store sessions only. This excludes the store&rsquo;s other sales channels, so these order counts are smaller than the store&rsquo;s total orders.")}
+    <div class="dtable-wrap" style="margin-top:clamp(1.6rem,3vw,2.4rem)" data-reveal>
+      <table class="dtable">
+        <thead><tr><th>Period</th><th class="num">Sessions</th><th class="num">Carts</th><th class="num">Checkouts</th><th class="num">Orders</th><th class="num">Conv. rate</th></tr></thead>
+        <tbody>{trows}</tbody>
+      </table>
+    </div>
+
+    {shotgrid(
+      shot("tts-nov-funnel.jpg",
+           "Shopify Analytics, conversion rate breakdown, 5 Oct&ndash;4 Nov 2026 against 4 Sept&ndash;4 Oct 2026. Captured 4 November 2026.",
+           1163, 280,
+           alt="Shopify Analytics for 5 October to 4 November 2026 showing 15,516 sessions, 1,194 carts, 1,113 checkouts, 615 completed checkouts and a 3.96% conversion rate"),
+      shot("tts-aug-funnel.jpg",
+           "Shopify Analytics, conversion rate breakdown, 1&ndash;31 Aug 2026 against 1&ndash;31 Jul 2026. Captured 4 November 2026.",
+           1163, 262,
+           alt="Shopify Analytics for August 2026 showing 43,520 sessions, 1,076 carts, 608 checkouts, 296 completed checkouts and a 0.68% conversion rate"),
+      shot("tts-sep-funnel.jpg",
+           "Shopify Analytics, conversion rate breakdown, 1&ndash;30 Sept 2026 against 2&ndash;31 Aug 2026. Captured 4 November 2026.",
+           1163, 262,
+           alt="Shopify Analytics for September 2026 showing 18,037 sessions, 1,084 carts, 719 checkouts, 353 completed checkouts and a 1.95% conversion rate"),
+      shot("tts-jul.jpg",
+           "Shopify Analytics, conversion rate breakdown, 1&ndash;31 Jul 2026 against 31 May&ndash;30 Jun 2026. Captured September 2026.",
+           934, 492,
+           alt="Shopify Analytics for July 2026 showing 16,349 sessions, 899 carts, 466 checkouts, 234 completed checkouts and a 1.43% conversion rate"),
+      cls="shotgrid--2")}
+  </div>
+</section>
+
+<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
+  <div class="wrap">
+    {shead("02", "Known distortions",
+           ["Two reasons the", "conversion rate lies."],
+           "Both are visible in the captures above, and both are the reason this site leads with order counts instead.")}
+
+    {flag("August&rsquo;s session count was inflated",
+          "August recorded 43,520 sessions against 16,349 in July. The dashboard&rsquo;s sessions-by-location tile "
+          "shows <strong>Singapore at 21.5K</strong> and China at 4.1K for that month; desktop sessions rose 268%. "
+          "By September, Singapore had fallen to 789 and China to 818.",
+          "Conversion rate is orders divided by sessions, so roughly 25,000 sessions that were never going to buy "
+          "dragged August down to 0.68%. Treat the 0.68% figure as a measurement artefact, not a business result.")}
+
+    {flag("Shopify changed how sessions are counted on 21 September 2026",
+          "The analytics page carries a notice: &ldquo;Beginning Sept 21, 2026, sessions and related metrics may "
+          "shift as Shopify Analytics enables better visibility into real shopper activity.&rdquo; A "
+          "<em>Definition change</em> marker appears on the September chart at that date.",
+          "Any conversion rate that spans 21 September is not strictly comparable with one from before it. "
+          "Order, cart and checkout counts are unaffected.")}
+
+    {shot("tts-sep-location.jpg",
+          "Shopify Analytics, sessions by location, 1&ndash;30 Sept 2026 against 2&ndash;31 Aug 2026. The pale bar behind each is August. Captured 4 November 2026.",
+          754, 330, cls="shot--narrow",
+          alt="Shopify sessions by location for September 2026 against August: Singapore down 96% from 21,500 to 789, China down 80% from 4,100 to 818")}
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="wrap">
+    <div class="split">
+      <div class="split__l" data-reveal>
+        <p class="mono eyebrow">Deliberately absent</p>
+        <h2 class="bigquote" style="margin-top:1.2rem">No revenue, no customer data, no testimonials I did not earn.</h2>
+      </div>
+      <div class="split__r prose" data-reveal data-delay="120">
+        <p>The store&rsquo;s sales figures exist and I have seen them. They are the client&rsquo;s to publish, not
+        mine, so no dollar amount appears anywhere on this site.</p>
+        <p>Nor does anything that could identify a customer. The captures on this page are aggregate analytics
+        screens, which is why they are safe to show you at full size.</p>
+        <p><strong>Nothing on this site is a projection of what your store would do.</strong> It is a record of what
+        one store did, with the parts that are not flattering left in.</p>
+      </div>
+    </div>
+    <p class="updated" style="margin-top:clamp(2rem,4vw,3rem)" data-reveal>Last updated 4 November 2026</p>
+  </div>
+</section>
+
+{cta_block("Want this run on your store?",
+           "Send the URL and what is not working. I will tell you where I think the orders are leaking before you pay me anything.")}
+"""
+    return page("proof.html", "Proof log — AKINTAYO",
+                "Where every figure on akintayoakingbehin.com comes from: dated Shopify Analytics screenshots for "
+                "Table Tennis USA, with the two known distortions in the conversion-rate data stated plainly.",
+                "work.html", body)
+
+
 def build_extras():
     with open(os.path.join(OUT, "robots.txt"), "w") as f:
         f.write("User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n" % DOMAIN)
 
     pages = ["index.html", "work.html", "table-tennis-usa.html", "gewo-usa.html",
-             "paul-david.html", "services.html", "about.html", "contact.html"]
+             "paul-david.html", "services.html", "about.html", "contact.html", "proof.html"]
     urls = "".join(
         '  <url><loc>%s/%s</loc><priority>%s</priority></url>\n' % (
             DOMAIN, p, "1.0" if p == "index.html" else ("0.9" if "usa" in p or p == "work.html" else "0.8"))
@@ -1687,15 +1919,19 @@ def build_extras():
 
     open(os.path.join(OUT, ".nojekyll"), "w").write("")
 
-    favicon = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-               '<rect width="32" height="32" fill="#070B0D"/>'
-               '<circle cx="16" cy="16" r="7" fill="#155EEF"/></svg>')
-    with open(os.path.join(OUT, "favicon.svg"), "w") as f:
-        f.write(favicon)
+    # Only write a favicon if none exists. The one in the project was made by
+    # hand later; regenerating it on every build quietly threw that away.
+    fav = os.path.join(OUT, "favicon.svg")
+    if not os.path.exists(fav):
+        with open(fav, "w") as f:
+            f.write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+                    '<rect width="32" height="32" fill="#070B0D"/>'
+                    '<circle cx="16" cy="16" r="7" fill="#155EEF"/></svg>')
 
 
 if __name__ == "__main__":
     built = [build_home(), build_work(), build_ttusa(), build_gewo(),
-             build_paul(), build_services(), build_about(), build_contact(), build_404()]
+             build_paul(), build_services(), build_about(), build_contact(),
+             build_proof(), build_404()]
     build_extras()
     print("Built:", ", ".join(built))
