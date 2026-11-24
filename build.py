@@ -82,6 +82,38 @@ def shot(src, alt, cap, w, h):
 def phone(src, alt, w=780, h=1688):
     return (f'<div class="phone"><div class="phone__d">{img(src, alt, w, h)}</div></div>')
 
+GRIP = ('<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" '
+        'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        '<path d="M9.5 6l-5 6 5 6M14.5 6l5 6-5 6"/></svg>')
+
+
+def compare(bsrc, balt, bw, bh, asrc, aalt, aw, ah, label):
+    """Drag-to-compare slider. Before fills the left of the frame, after the
+    right. The range input is the whole control surface, so pointer, touch
+    and keyboard all work without any custom event handling."""
+    return f"""<div class="ba" data-reveal>
+  <div class="ba__frame">
+    <img class="ba__img" src="{asrc}" alt="{html.escape(aalt, quote=True)}" width="{aw}" height="{ah}" loading="lazy" decoding="async">
+    <div class="ba__clip"><img class="ba__img" src="{bsrc}" alt="{html.escape(balt, quote=True)}" width="{bw}" height="{bh}" loading="lazy" decoding="async"></div>
+    <span class="ba__tag ba__tag--l">Before</span>
+    <span class="ba__tag ba__tag--r">After</span>
+    <input class="ba__range" type="range" min="0" max="100" value="50" step="0.1"
+           aria-label="Drag to compare {label}">
+    <span class="ba__bar" aria-hidden="true"><span class="ba__grip">{GRIP}</span></span>
+  </div>
+  <p class="ba__cap">Drag the handle &middot; before on the left, after on the right</p>
+</div>"""
+
+
+def ashot(src, alt, cap, w, h, kicker):
+    """A dashboard screenshot shown large, never upscaled past its own pixels,
+    pannable on a narrow screen rather than shrunk to nothing."""
+    return f"""<figure class="ashot" data-reveal>
+  <p class="ashot__k">{kicker}</p>
+  <div class="ashot__s"><img src="{src}" alt="{html.escape(alt, quote=True)}" width="{w}" height="{h}" loading="lazy" decoding="async" style="max-width:{w}px"></div>
+  <figcaption>{cap}<span class="ashot__hint">Swipe the panel to see all of it</span></figcaption>
+</figure>"""
+
 def meta_row(items):
     cells = "".join(f'<div><dt>{k}</dt><dd>{v}</dd></div>' for k, v in items)
     return f'<dl class="meta" data-reveal>{cells}</dl>'
@@ -288,7 +320,7 @@ def build_home():
     {shead("( 02 ) &mdash; Top projects", '<h2 class="tl">TWO FLAGSHIP<br><em class="it">sites.</em></h2>', link=("All work (5)", "work.html"))}
     <div class="pcards">
       <a class="pcard" href="fremont-table-tennis.html" data-reveal>
-        <span class="pcard__img">{img("fremont-home-desktop.jpg","Fremont Table Tennis Academy homepage after the redesign",1440,900)}</span>
+        <span class="pcard__img">{img("fremont-home-desktop.jpg","Fremont Table Tennis Academy homepage after the redesign",1365,1238)}</span>
         <span class="pcard__meta"><span>
           <span class="label">01 &mdash; Table tennis &middot; Club &amp; academy</span>
           <span class="ts pcard__t" style="display:block">Fremont Table Tennis Academy</span>
@@ -296,7 +328,7 @@ def build_home():
         </span>{circ()}</span>
       </a>
       <a class="pcard" href="table-tennis-usa.html" data-reveal>
-        <span class="pcard__img">{img("tts-desk-c.jpg","TableTennisStore.us homepage",1440,760)}</span>
+        <span class="pcard__img">{img("tts-desk-c.jpg","TableTennisStore.us homepage",1364,1098)}</span>
         <span class="pcard__meta"><span>
           <span class="label">02 &mdash; Table tennis &middot; Ecommerce</span>
           <span class="ts pcard__t" style="display:block">TableTennisStore.us</span>
@@ -382,11 +414,11 @@ def slot_prev(sid):
 PROJECTS = [
     dict(href="fremont-table-tennis.html", sport="table-tennis", pill="Top project",
          label="Table tennis &middot; Club &amp; academy", name="Fremont Table Tennis Academy",
-         line="Redesign", im=("fremont-home-desktop.jpg", 1440, 900),
+         line="Redesign", im=("fremont-home-desktop.jpg", 1365, 1238),
          alt="Fremont Table Tennis Academy homepage after the redesign"),
     dict(href="table-tennis-usa.html", sport="table-tennis", pill="Top project",
          label="Table tennis &middot; Ecommerce", name="TableTennisStore.us",
-         line="Shopify &middot; +163% completed orders", im=("tts-desk-c.jpg", 1440, 760),
+         line="Shopify &middot; +163% completed orders", im=("tts-desk-c.jpg", 1364, 1098),
          alt="TableTennisStore.us homepage"),
     dict(href="gewo-usa.html", sport="table-tennis", pill=None,
          label="Table tennis &middot; Manufacturer store", name="GEWO USA",
@@ -439,7 +471,7 @@ def build_work():
     return page("work.html", "Selected Work — Akintayo",
                 "Five sports website projects: Fremont Table Tennis Academy, TableTennisStore.us, "
                 "GEWO USA, Octagon and Starting Eleven.",
-                "work.html", body, og="fremont-home-desktop.jpg")
+                "work.html", body, og="og-fremont.jpg")
 
 
 # =================================================================== SPORTS ==
@@ -766,7 +798,7 @@ def build_fremont():
          ("Role", "UX &amp; UI redesign, build"),
          ("Live site", '<a href="https://fremonttabletennis.com" target="_blank" rel="noopener">fremonttabletennis.com &#8599;</a>')],
         img("fremont-home-desktop.jpg", "Fremont Table Tennis Academy homepage after the redesign",
-            1440, 900, style="max-height:760px")
+            1365, 1238, style="max-height:760px")
     ) + f"""
 <section class="sect">
   <div class="wrap">
@@ -786,12 +818,9 @@ def build_fremont():
 <section class="sect sect--tight">
   <div class="wrap">
     <p class="label" data-reveal style="margin-bottom:1.6rem">Before and after</p>
-    <div class="grid g-2">
-      {shot("fremont-before.jpg", "The Fremont Table Tennis Academy site before the redesign",
-            "Before &middot; the previous fremonttabletennis.com", 1091, 682)}
-      {shot("fremont-home-desktop.jpg", "The Fremont Table Tennis Academy homepage after the redesign",
-            "After &middot; the site now live", 1440, 900)}
-    </div>
+    {compare("fremont-before.jpg", "The Fremont Table Tennis Academy site before the redesign", 1091, 682,
+             "fremont-home-desktop.jpg", "The Fremont Table Tennis Academy homepage after the redesign", 1365, 1238,
+             "the Fremont Table Tennis Academy site before and after the redesign")}
   </div>
 </section>
 
@@ -802,7 +831,7 @@ def build_fremont():
         <p class="label" style="margin-bottom:1rem">On a phone</p>
         <p class="body">Most parents book from the sideline or the car. The redesign was laid out phone-first: one column, the class finder at the top, and call, text and register buttons that stay in reach the whole way down.</p>
       </div>
-      {phone("fremont-mobile.jpg", "The redesigned Fremont Table Tennis Academy site on a phone")}
+      {phone("fremont-mobile.jpg", "The redesigned Fremont Table Tennis Academy site on a phone", 1080, 1931)}
     </div>
   </div>
 </section>
@@ -816,7 +845,7 @@ def build_fremont():
       </div>
       <div>
         <p class="body">A parent landing on the old site had to work out where to go. On the new one the classes, the camps and the phone number are the first things on the screen, and the academy finally reads the way it talks about itself.</p>
-        <p class="body" style="margin-top:1rem">No sign-up figure is published here. The academy&rsquo;s numbers are theirs, not mine &mdash; so judge this one on the two screenshots above.</p>
+        <p class="body" style="margin-top:1rem">No sign-up figure is published here. The academy&rsquo;s numbers are theirs, not mine &mdash; so drag the slider above and judge this one on the work.</p>
       </div>
     </div>
   </div>
@@ -826,7 +855,7 @@ def build_fremont():
     return page("fremont-table-tennis.html", "Fremont Table Tennis Academy — Case Study",
                 "A full redesign for Fremont Table Tennis Academy, built around the question every "
                 "visitor arrives with: which class is right for me?",
-                "work.html", body, og="fremont-home-desktop.jpg")
+                "work.html", body, og="og-fremont.jpg")
 
 
 # ====================================================== CASE: TTS (rebuild) ==
@@ -866,7 +895,7 @@ def build_ttusa():
         [("Client", "Table Tennis USA"), ("Platform", "Shopify"),
          ("Role", "UX design, theme customisation, CRO, SEO"),
          ("Live site", '<a href="https://tabletennisstore.us" target="_blank" rel="noopener">tabletennisstore.us &#8599;</a>')],
-        img("tts-desk-c.jpg", "TableTennisStore.us homepage", 1440, 760, style="max-height:650px")
+        img("tts-desk-c.jpg", "TableTennisStore.us homepage", 1364, 1098, style="max-height:650px")
     ) + f"""
 <section class="sect">
   <div class="wrap">
@@ -918,10 +947,27 @@ def build_ttusa():
       {shot("tts-cart-unlocked.jpg","The side cart on tabletennisstore.us showing a full progress bar reading: you have unlocked free shipping","Live store &middot; free-shipping bar cleared at $75",1354,675)}
       {phone("tts-mobile.jpg","TableTennisStore.us on a phone")}
     </div>
-    <div class="grid g-3" style="margin-top:clamp(1.6rem,4vw,3rem)">
-      {shot("tts-nov-funnel.jpg","Shopify Analytics for 5 October to 4 November 2026: 15,516 sessions, 1,194 carts, 1,113 checkouts, 615 completed orders","Shopify Analytics &middot; 5 Oct &ndash; 4 Nov 2026",1163,280)}
-      {shot("tts-jul.jpg","Shopify Analytics for July 2026: 16,349 sessions, 899 carts, 466 checkouts, 234 completed orders","Shopify Analytics &middot; 1&ndash;31 July 2026",934,492)}
-      {shot("tts-sep-location.jpg","Shopify sessions by location for September 2026 against August: Singapore down 96% from 21,500 to 789","Sessions by location &middot; Sept vs Aug 2026",754,330)}
+  </div>
+</section>
+
+<section class="sect sect--tight">
+  <div class="wrap">
+    <p class="label" data-reveal style="margin-bottom:1.6rem">Straight from the Shopify dashboard</p>
+    <div class="astack">
+      {ashot("tts-jul.jpg","Shopify Analytics for July 2026: 16,349 sessions, 899 added to cart, 466 reached checkout, 234 completed checkout, 1.43% conversion rate","Shopify Analytics &middot; 1&ndash;31 July 2026",934,492,"Where it started")}
+      {ashot("tts-nov-funnel.jpg","Shopify Analytics for 5 October to 4 November 2026: 15,516 sessions, 1,194 added to cart, 1,113 reached checkout, 615 completed checkout, 3.96% conversion rate","Shopify Analytics &middot; 5 Oct &ndash; 4 Nov 2026",1163,280,"Where it is now")}
+      {ashot("tts-sep-location.jpg","Shopify sessions by location for September 2026 against August: Singapore down 96% from 21,500 to 789","Sessions by location &middot; Sept vs Aug 2026",754,330,"Why August is discounted")}
+    </div>
+    <div class="askbox" data-reveal>
+      <div>
+        <p class="label">The part I cannot publish</p>
+        <h3 class="ts" style="margin-top:.8rem">What did that do to <em class="it">revenue?</em></h3>
+      </div>
+      <div>
+        <p class="body">The conversion rate moved from 1.43% to 3.96% on a store that was already taking orders every day. The sales figures behind that are the client&rsquo;s, not mine, so I am not putting them on a public page.</p>
+        <p class="body" style="margin-top:1rem">If that is the number you actually care about, book a short call. I will open the real dashboard on screen and walk you through what the increase was worth.</p>
+        {btn("Book a call to see the figures", mail("Table Tennis USA results — can we do a live call?"), "primary")}
+      </div>
     </div>
   </div>
 </section>

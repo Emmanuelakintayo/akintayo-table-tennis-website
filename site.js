@@ -220,11 +220,54 @@
     }, { passive: true });
   }
 
+  /* ------------------------------------- before / after comparison slider */
+  Array.prototype.forEach.call(document.querySelectorAll(".ba"), function (ba) {
+    var r = ba.querySelector(".ba__range");
+    if (!r) return;
+    function set() { ba.style.setProperty("--pos", r.value + "%"); }
+    r.addEventListener("input", set);
+    set();
+  });
+
+  /* --------------------------------------------- ball trail on the cursor */
+  if (!reduced && window.matchMedia("(hover:hover) and (pointer:fine)").matches) {
+    var bLast = null, bAcc = 0, bFlip = 0, bLive = 0;
+    document.addEventListener("pointermove", function (e) {
+      if (e.pointerType && e.pointerType !== "mouse") return;
+      if (!bLast) { bLast = [e.clientX, e.clientY]; return; }
+      var dx = e.clientX - bLast[0], dy = e.clientY - bLast[1];
+      bAcc += Math.sqrt(dx * dx + dy * dy);
+      bLast = [e.clientX, e.clientY];
+      if (bAcc < 135 || bLive > 7) return;
+      bAcc = 0; bLive++;
+      var d = document.createElement("span");
+      d.className = "bdot " + (bFlip++ % 3 === 2 ? "bdot--fb" : "bdot--tt");
+      var sz = Math.round(9 + Math.random() * 9);
+      d.style.cssText = "--s:" + sz + "px;left:" + e.clientX + "px;top:" + e.clientY + "px";
+      document.body.appendChild(d);
+      d.addEventListener("animationend", function () { d.remove(); bLive--; });
+    }, { passive: true });
+  }
+
   /* ------------------------------------------------------ page transition */
   if (!reduced) {
+    var mesh = "";
+    for (var mx = 36; mx < 240; mx += 20) mesh += '<path d="M' + mx + ' 18V162"/>';
+    for (var my = 36; my < 162; my += 20) mesh += '<path d="M20 ' + my + 'H220"/>';
+
     var curtain = document.createElement("div");
     curtain.className = "curtain out";
     curtain.setAttribute("aria-hidden", "true");
+    curtain.innerHTML =
+      '<span class="curtain__bg"></span>' +
+      '<svg class="curtain__goal" viewBox="0 0 240 172" fill="none">' +
+        '<g class="curtain__net" stroke="currentColor" stroke-opacity=".32" stroke-width="1.5">' +
+          mesh +
+        '</g>' +
+        '<path d="M20 164V18h200v146" stroke="currentColor" stroke-width="11" ' +
+          'stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>' +
+      '<span class="curtain__ball"><span><i></i></span></span>';
     document.body.appendChild(curtain);
     curtain.addEventListener("animationend", function () {
       if (curtain.classList.contains("out")) curtain.classList.remove("out", "in");
@@ -241,7 +284,7 @@
       e.preventDefault();
       curtain.classList.remove("out");
       curtain.classList.add("in");
-      setTimeout(function () { window.location.href = href; }, 450);
+      setTimeout(function () { window.location.href = href; }, 640);
     });
   }
 })();
