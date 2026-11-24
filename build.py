@@ -105,6 +105,17 @@ def compare(bsrc, balt, bw, bh, asrc, aalt, aw, ah, label):
 </div>"""
 
 
+def dims(fname, fallback=(1600, 1200)):
+    """Real pixel size of an image in OUT, so width/height never lie and the
+    browser reserves the right box before the file arrives."""
+    try:
+        from PIL import Image
+        with Image.open(os.path.join(OUT, fname)) as im:
+            return im.size
+    except Exception:
+        return fallback
+
+
 def ashot(src, alt, cap, w, h, kicker):
     """A dashboard screenshot shown large, never upscaled past its own pixels,
     pannable on a narrow screen rather than shrunk to nothing."""
@@ -508,9 +519,11 @@ def build_sports():
         chipcls = "chip chip--solid" if chip in ("Specialist", "Proven") else "chip"
         lis = "".join(f"<li>{x}</li>" for x in items)
         f = f"sport-{sid}.jpg"
-        media = (f'<div>{img(f, name + " website work", 1600, 1200)}</div>'
-                 if os.path.exists(os.path.join(OUT, f))
-                 else f'<div>{slot(f, sid)}</div>')
+        if os.path.exists(os.path.join(OUT, f)):
+            iw, ih = dims(f)
+            media = f'<div class="sblock__m">{img(f, name + " website work", iw, ih)}</div>'
+        else:
+            media = f'<div>{slot(f, sid)}</div>'
         rev = " sblock--rev" if i % 2 else ""
         blocks += f"""<section class="sblock{rev}" id="{sid}" data-reveal>
   <div class="sblock__t">

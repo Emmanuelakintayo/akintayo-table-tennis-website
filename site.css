@@ -544,6 +544,8 @@ table{ border-collapse:collapse; width:100%; }
 .sblock__t p{ margin-top:1.2rem; color:var(--body); max-width:42ch; }
 .sblock__t ul{ margin:1.6rem 0; }
 .sblock__t li{ border-top:1px solid var(--line); padding:.8rem 0; font-size:.92rem; }
+.sblock__m{ overflow:hidden; background:var(--porcelain); aspect-ratio:4/3; }
+.sblock__m img{ width:100%; height:100%; object-fit:cover; display:block; }
 .builtfor{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
 
 /* -------------------------------------------------- 18. Case studies */
