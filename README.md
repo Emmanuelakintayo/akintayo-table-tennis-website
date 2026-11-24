@@ -11,16 +11,29 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-## Folder layout
+## Folder layout — everything is flat, and that is deliberate
+
+Every file sits at the root. `site.css`, `site.js`, the images and the video are
+beside the HTML, and the HTML refers to them by plain filename: `site.css`,
+not `/site.css` and not `css/site.css`.
 
 ```
 index.html  work.html  sports.html  services.html  about.html  contact.html
 fremont-table-tennis.html  table-tennis-usa.html  gewo-usa.html
 octagon.html  starting-eleven.html  proof.html  404.html
-css/site.css      js/site.js
-assets/img/...    assets/video/...
+site.css  site.js  testimonial.mp4  *.jpg  *.png
 sitemap.xml  robots.txt  favicon.svg  .nojekyll  build.py
 ```
+
+**Do not move files into subfolders.** A leading slash breaks on a GitHub Pages
+project URL, and a subfolder breaks the moment a folder does not survive an
+upload — which is exactly what happened the first time this redesign went up:
+`index.html` arrived but `css/`, `js/` and `assets/` did not, so the page
+rendered as raw unstyled text. Flat filenames survive both.
+
+**Upload the contents of this folder, not the folder itself.** After deploying,
+load the site: it should have a cream background and navy type. If it looks like
+plain blue links on white, `site.css` is not being found.
 
 `paul-david.html` is still on disk but is `noindex`, is not linked from
 anywhere, and is not in the sitemap.
@@ -53,7 +66,7 @@ runs on the server.
 
 ## Swapping the testimonial video
 
-Replace `assets/video/testimonial.mp4` and `assets/img/testimonial-poster.jpg`.
+Replace `testimonial.mp4` and `testimonial-poster.jpg`.
 Keep the video well under 50MB — GitHub warns above that and blocks at 100MB.
 To compress:
 
@@ -68,18 +81,18 @@ Grab a poster frame from it:
 ffmpeg -ss 2 -i testimonial.mp4 -frames:v 1 -q:v 3 testimonial-poster.jpg
 ```
 
-The caption under the video is a `<!-- TODO -->` in `build_home()` — fill in the
-client's name, role and organisation there.
+The caption under the video is in `build_home()` — currently Ben Nisbet, CEO &
+founder of Table Tennis Store USA and GEWO USA.
 
 To add a second testimonial later, duplicate the `<figure class="testimonial">`
 block. Nothing else needs changing.
 
-## Missing assets
+## Optional images
 
-The page renders a styled placeholder wherever an image is absent, so nothing
-breaks. Drop these into `assets/img/` and they appear automatically:
+The Sports page renders a styled placeholder wherever a photo is absent, so
+nothing breaks. Drop any of these into the root folder and they appear
+automatically, on the Sports page and as the hover preview on the home page:
 
-- `fremont-programs.jpg`
 - `sport-table-tennis.jpg`, `sport-football.jpg`, `sport-cricket.jpg`,
   `sport-volleyball.jpg`, `sport-field-hockey.jpg`, `sport-ice-hockey.jpg`
 
@@ -88,5 +101,6 @@ breaks. Drop these into `assets/img/` and they appear automatically:
 - **No prices on the site.** Scope and price go out in writing after a review.
 - **No revenue figures.** The Table Tennis USA sales data belongs to the client.
 - **No invented testimonials, results, awards or social links.**
-- The Fremont case study has a dashed "Result" box with a `<!-- TODO -->`.
-  Either put a real number in it or delete the whole section before launch.
+- The Fremont case study's Result box deliberately carries no figure. The
+  before-and-after screenshots on that page are the evidence. If the academy
+  ever shares a sign-up number you can add it, but do not invent one.

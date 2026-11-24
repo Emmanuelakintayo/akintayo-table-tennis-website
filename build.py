@@ -72,7 +72,7 @@ def img(src, alt, w, h, cls="", eager=False, style=""):
     ld = 'fetchpriority="high"' if eager else 'loading="lazy"'
     c = f' class="{cls}"' if cls else ""
     s = f' style="{style}"' if style else ""
-    return (f'<img src="assets/img/{src}" alt="{html.escape(alt, quote=True)}" '
+    return (f'<img src="{src}" alt="{html.escape(alt, quote=True)}" '
             f'width="{w}" height="{h}" {ld} decoding="async"{c}{s}>')
 
 def shot(src, alt, cap, w, h):
@@ -181,14 +181,14 @@ def page(fname, title, desc, current, body, og="og-default.jpg", jsonld="", over
 <meta property="og:title" content="{html.escape(title, quote=True)}">
 <meta property="og:description" content="{html.escape(desc, quote=True)}">
 <meta property="og:url" content="{DOMAIN}/{fname}">
-<meta property="og:image" content="{DOMAIN}/assets/img/{og}">
+<meta property="og:image" content="{DOMAIN}/{og}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{html.escape(title, quote=True)}">
 <meta name="twitter:description" content="{html.escape(desc, quote=True)}">
-<meta name="twitter:image" content="{DOMAIN}/assets/img/{og}">
+<meta name="twitter:image" content="{DOMAIN}/{og}">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 {FONTS}
-<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="site.css">
 {jsonld}
 </head>
 <body>
@@ -198,7 +198,7 @@ def page(fname, title, desc, current, body, og="og-default.jpg", jsonld="", over
 {body}
 </main>
 {footer()}
-<script src="js/site.js" defer></script>
+<script src="site.js" defer></script>
 </body>
 </html>
 """
@@ -326,7 +326,7 @@ def build_home():
     <div class="split--41 split">
       <div>
         <p class="label" data-reveal>( 05 ) &mdash; Client story</p>
-        <h2 class="tm" data-reveal style="margin-top:1.2rem">IN THEIR<br><em class="it" style="color:var(--pear)">own words.</em></h2>
+        <h2 class="tm" data-reveal style="margin-top:1.2rem;font-size:clamp(2rem,4vw,3.25rem)">IN THEIR<br><em class="it" style="color:var(--pear);white-space:nowrap">own words.</em></h2>
         <p class="body" data-reveal style="margin-top:1.4rem;max-width:34ch">A short video from a client I&rsquo;ve worked with.</p>
       </div>
       <div>
@@ -340,9 +340,8 @@ def build_home():
           <figcaption class="tvid__cap">
             <span class="tvid__av" aria-hidden="true"></span>
             <span>
-              <!-- TODO: client name / role / organisation -->
-              <strong style="display:block">Client name</strong>
-              <span class="body" style="font-size:.85rem">Role &middot; Organisation</span>
+              <strong style="display:block">Ben Nisbet</strong>
+              <span class="body" style="font-size:.85rem">CEO &amp; founder &middot; Table Tennis Store USA and GEWO USA</span>
             </span>
             <span class="tvid__sport">Table tennis</span>
           </figcaption>
@@ -354,10 +353,9 @@ def build_home():
 
 <dialog class="lbx" id="videoDialog" aria-label="Client testimonial video">
   <button class="lbx__x" type="button" aria-label="Close the video">&times;</button>
-  <video controls playsinline preload="metadata" poster="assets/img/testimonial-poster.jpg" style="aspect-ratio:9/16;max-height:82vh;width:auto;margin-inline:auto">
-    <source src="assets/video/testimonial.mp4" type="video/mp4">
-    <!-- TODO: add <track kind="captions" src="assets/video/testimonial.vtt" srclang="en" label="English"> when the .vtt exists -->
-    <a href="assets/video/testimonial.mp4">Download the testimonial video</a>
+  <video controls playsinline preload="metadata" poster="testimonial-poster.jpg" style="aspect-ratio:9/16;max-height:82vh;width:auto;margin-inline:auto">
+    <source src="testimonial.mp4" type="video/mp4">
+    <a href="testimonial.mp4">Download the testimonial video</a>
   </video>
 </dialog>
 
@@ -374,8 +372,8 @@ def slot_prev(sid):
     placeholder when the sport photo has not been supplied."""
     import os as _os
     f = f"sport-{sid}.jpg"
-    if _os.path.exists(_os.path.join(OUT, "assets", "img", f)):
-        return (f'<img class="srow__prev" src="assets/img/{f}" alt="" aria-hidden="true" '
+    if _os.path.exists(_os.path.join(OUT, f)):
+        return (f'<img class="srow__prev" src="{f}" alt="" aria-hidden="true" '
                 f'width="300" height="190" loading="lazy">')
     return ""
 
@@ -479,7 +477,7 @@ def build_sports():
         lis = "".join(f"<li>{x}</li>" for x in items)
         f = f"sport-{sid}.jpg"
         media = (f'<div>{img(f, name + " website work", 1600, 1200)}</div>'
-                 if os.path.exists(os.path.join(OUT, "assets", "img", f))
+                 if os.path.exists(os.path.join(OUT, f))
                  else f'<div>{slot(f, sid)}</div>')
         rev = " sblock--rev" if i % 2 else ""
         blocks += f"""<section class="sblock{rev}" id="{sid}" data-reveal>
@@ -800,7 +798,10 @@ def build_fremont():
 <section class="sect sect--tight">
   <div class="wrap">
     <div class="grid g-2">
-      <div data-reveal>{slot("fremont-programs.jpg", "table-tennis")}</div>
+      <div data-reveal>
+        <p class="label" style="margin-bottom:1rem">On a phone</p>
+        <p class="body">Most parents book from the sideline or the car. The redesign was laid out phone-first: one column, the class finder at the top, and call, text and register buttons that stay in reach the whole way down.</p>
+      </div>
       {phone("fremont-mobile.jpg", "The redesigned Fremont Table Tennis Academy site on a phone")}
     </div>
   </div>
@@ -808,15 +809,15 @@ def build_fremont():
 
 <section class="sect sect--tight">
   <div class="wrap">
-    <!-- TODO: real result. Akintayo to supply one number (class sign-ups, camp
-         registrations since launch). If none is supplied before launch, delete
-         this whole <section>. Do not invent a figure. -->
     <div class="result-box" data-reveal>
       <div>
         <p class="label">Result</p>
-        <h2 class="ts" style="margin-top:.8rem">Add your result here.</h2>
+        <h2 class="ts" style="margin-top:.8rem">The before and after are both on this page.</h2>
       </div>
-      <p class="body">One real number tells the story best &mdash; for example, class sign-ups or camp registrations since launch.</p>
+      <div>
+        <p class="body">A parent landing on the old site had to work out where to go. On the new one the classes, the camps and the phone number are the first things on the screen, and the academy finally reads the way it talks about itself.</p>
+        <p class="body" style="margin-top:1rem">No sign-up figure is published here. The academy&rsquo;s numbers are theirs, not mine &mdash; so judge this one on the two screenshots above.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -983,20 +984,26 @@ def build_gewo():
                 "work.html", body, og="og-gewo.jpg")
 
 
-def build_short(fname, num, label_bits, title_html, meta, hero, nxt, og, title, desc, todo=True):
-    todo_html = ("<!-- TODO: description. Akintayo to supply. Until then this page stays short "
-                 "and claims nothing. -->") if todo else ""
+def build_short(fname, num, label_bits, title_html, meta, hero, nxt, og, title, desc,
+                head_html="", paras=()):
+    """A short project page: label, title, meta, hero, a two-column description
+    and the live-site button. Deliberately claims no results — neither project
+    has published figures."""
     live = [v for k, v in meta if k == "Live site"][0]
     import re as _re
     url = _re.search(r'href="([^"]+)"', live).group(1)
+    ps = "".join(f'<p class="body" style="margin-top:1.1rem">{x}</p>' for x in paras[1:])
+    lead = f'<p class="lead body">{paras[0]}</p>' if paras else ""
     body = case_head(f"( Project {num} ) &mdash; {label_bits}", title_html, meta, hero) + f"""
 <section class="sect">
   <div class="wrap">
     <div class="split">
-      <div><p class="label" data-reveal>The project</p></div>
+      <div>
+        <p class="label" data-reveal>The project</p>
+        <h2 class="tm" data-reveal style="margin-top:1rem">{head_html}</h2>
+      </div>
       <div data-reveal>
-        {todo_html}
-        <p class="lead body">A description of this project is on the way.</p>
+        {lead}{ps}
         <div style="margin-top:2rem">{btn("Visit the live site", url, "primary", ' target="_blank" rel="noopener"')}</div>
       </div>
     </div>
@@ -1015,7 +1022,17 @@ def build_octagon():
         img("octagon-home.jpg", "Octagon website", 1440, 900, style="max-height:700px"),
         next_project('STARTING <em class="it">Eleven.</em>', "starting-eleven.html"),
         "octagon-home.jpg", "Octagon — Project",
-        "Website design for Octagon, a football and sports marketing business.")
+        "Website design for Octagon, a sports and entertainment marketing business working "
+        "across brands, talent and campaigns.",
+        head_html='THREE AUDIENCES, <em class="it">one site.</em>',
+        paras=(
+            "Octagon works in sports and entertainment marketing, so the site has to serve three "
+            "very different visitors at once: brands looking for a partner, athletes looking for "
+            "representation, and people looking for a job.",
+            "The design keeps those paths apart and obvious from the first screen, and lets the "
+            "campaign work carry the visual weight rather than the copy. Everything else gets out "
+            "of the way of the thing a visitor actually came to look at.",
+        ))
 
 
 def build_starting_eleven():
@@ -1029,7 +1046,18 @@ def build_starting_eleven():
         next_project('ALL <em class="it">work.</em>', "work.html",
                      label="Back to", cta_label="See all five projects"),
         "starting-eleven-home.jpg", "Starting Eleven — Project",
-        "Shopify website design for Starting Eleven, a football retail store in Lexington, Kentucky.")
+        "Shopify website design for Starting Eleven, a football retail store in Lexington, "
+        "Kentucky, selling boots, fanwear, goalkeeper kit and a monthly mystery kit.",
+        head_html='A SHOP AND A <em class="it">subscription.</em>',
+        paras=(
+            "A football store in Lexington, Kentucky, selling boots, fanwear, balls, goalkeeper "
+            "kit and team orders &mdash; with a monthly mystery kit running alongside the usual "
+            "catalogue.",
+            "Those are two different shoppers. One is replacing a pair of boots and knows exactly "
+            "what they want; the other is buying a surprise every month. The storefront leads with "
+            "the subscription, because that is the harder sell, and keeps the full catalogue one "
+            "tap away for everyone else.",
+        ))
 
 
 # ================================================================== PROOF ====
