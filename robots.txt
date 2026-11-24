@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /paul-david.html
 
 Sitemap: https://akintayoakingbehin.com/sitemap.xml

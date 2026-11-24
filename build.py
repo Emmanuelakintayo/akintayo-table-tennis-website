@@ -1,158 +1,204 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Static builder for the AKINTAYO site. Emits plain HTML files — no runtime
-dependency, no framework. Run: python3 build.py"""
+"""
+AKINTAYO — static site generator.
 
-import os, re, html
+Emits plain HTML into this folder. There is no build step at deploy time:
+GitHub serves the .html files this script writes. The script exists only so the
+header, CTA block and footer are authored once instead of thirteen times; the
+markup is written into every page, so SEO and no-JS visitors get everything.
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+    python3 build.py
+"""
+import os, html
 
+OUT    = os.path.dirname(os.path.abspath(__file__))
 EMAIL  = "akintayo@akintayoakingbehin.com"
 DOMAIN = "https://akintayoakingbehin.com"
-BRAND  = "AKINTAYO"
+YEAR   = "2026"
 
-def mail(subject="Website project enquiry", body=None):
-    q = "?subject=" + subject.replace(" ", "%20")
-    if body:
-        q += "&body=" + body.replace(" ", "%20").replace("\n", "%0D%0A")
-    return "mailto:" + EMAIL + q
+def mail(subject="Website project enquiry"):
+    from urllib.parse import quote
+    return f"mailto:{EMAIL}?subject={quote(subject)}"
 
-ARROW = ('<svg class="btn__arrow" viewBox="0 0 10 10" fill="none" aria-hidden="true">'
-         '<path d="M1 9L9 1M9 1H2.5M9 1v6.5" stroke="currentColor" stroke-width="1.4" '
-         'stroke-linecap="round" stroke-linejoin="round"/></svg>')
+ARROW = ('<svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">'
+         '<path d="M10 1l5 5-5 5M15 6H0" stroke="currentColor" stroke-width="1.6"/></svg>')
+ARROW_S = ('<svg width="14" height="11" viewBox="0 0 16 12" fill="none" aria-hidden="true">'
+           '<path d="M10 1l5 5-5 5M15 6H0" stroke="currentColor" stroke-width="1.6"/></svg>')
 
-BIGARROW = ('<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
-            '<path d="M4 20L20 4M20 4H8M20 4v12" stroke="currentColor" stroke-width="1.5" '
-            'stroke-linecap="round" stroke-linejoin="round"/></svg>')
-
-NAV = [("Work", "work.html"), ("Services", "services.html"),
+NAV = [("Work", "work.html"), ("Sports", "sports.html"), ("Services", "services.html"),
        ("About", "about.html"), ("Contact", "contact.html")]
 
-FONTS = ("https://fonts.googleapis.com/css2?"
-         "family=Archivo:wght@400;500;600;700;800&"
-         "family=Instrument+Serif:ital@1&"
-         "family=Martian+Mono:wght@400;500&display=swap")
+SPORTS = [
+    ("table-tennis", "Table tennis", "Equipment stores, club and coaching sites"),
+    ("football",     "Football",     "Club and academy sites, retail stores"),
+    ("cricket",      "Cricket",      "Club and league sites, kit stores"),
+    ("volleyball",   "Volleyball",   "Team, tournament and school sites"),
+    ("field-hockey", "Field hockey", "Club sites, fixtures, stick and kit stores"),
+    ("ice-hockey",   "Ice hockey",   "Team, rink and league sites, jersey stores"),
+]
 
+# Faint line icons for the image placeholder, one per sport.
+SPORT_ICON = {
+    "table-tennis": '<circle cx="34" cy="30" r="16"/><path d="M26 44l-10 18 8 5 12-17"/><circle cx="62" cy="54" r="6"/>',
+    "football":     '<circle cx="40" cy="40" r="26"/><path d="M40 22l10 8-4 13H34l-4-13z"/><path d="M40 14v8M18 34l12 4M62 34l-12 4M26 60l8-7M54 60l-8-7"/>',
+    "cricket":      '<path d="M22 58L46 20l8 6-24 38z"/><path d="M20 56l-6 10 10-6z"/><circle cx="62" cy="52" r="9"/>',
+    "volleyball":   '<circle cx="40" cy="40" r="26"/><path d="M40 14c-8 14-8 38 0 52M14 40c14-8 38-8 52 0M22 20c6 16 22 28 40 30"/>',
+    "field-hockey": '<path d="M26 16v30c0 10 8 16 16 16s14-6 14-14"/><circle cx="60" cy="58" r="6"/>',
+    "ice-hockey":   '<path d="M20 18v32c0 6 4 10 10 10h30"/><ellipse cx="58" cy="62" rx="12" ry="5"/>',
+}
 
-# --------------------------------------------------------------------- chrome
-def header(current):
-    links = "".join(
-        '<a class="nav__link" href="{h}"{c}>{t}</a>'.format(
-            h=h, t=t, c=' aria-current="page"' if h == current else "")
-        for t, h in NAV)
-    menu = "".join(
-        '<a class="menu__link" href="{h}"><span>{n:02d}</span>{t}</a>'.format(
-            h=h, t=t, n=i + 1)
-        for i, (t, h) in enumerate(NAV))
-    home_cur = ' aria-current="page"' if current == "index.html" else ""
-    return f"""<a class="skip" href="#main">Skip to content</a>
-<div class="grain" aria-hidden="true"></div>
-<div class="curtain" aria-hidden="true"></div>
-<div class="progress" aria-hidden="true"></div>
-<div class="cursor" aria-hidden="true"><span class="cursor__label"></span></div>
-<div class="cursor-dot" aria-hidden="true"></div>
-<div class="peek" aria-hidden="true"></div>
+# ---------------------------------------------------------------- components
+def btn(label, href, kind="", attrs=""):
+    cls = "btn" + (f" btn--{kind}" if kind else "")
+    return f'<a class="{cls}" href="{href}"{attrs}><span>{label}</span>{ARROW}</a>'
 
-<header class="nav">
-  <div class="nav__inner">
-    <a class="logo" href="index.html" aria-label="AKINTAYO — home"{home_cur}><span class="logo__ball"></span>AKINTAYO</a>
-    <nav class="nav__links" aria-label="Primary">{links}</nav>
-    <a class="btn nav__cta" href="{mail()}" data-magnet="0.2"><span>Start a project</span>{ARROW}</a>
-    <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+def tlink(label, href, attrs=""):
+    return f'<a class="tlink" href="{href}"{attrs}>{label}{ARROW_S}</a>'
+
+def circ():
+    return f'<span class="circ" aria-hidden="true">{ARROW_S}</span>'
+
+def slot(filename, sport="table-tennis", ratio="4/3"):
+    """The styled placeholder. Used wherever a photograph has not been
+    supplied yet, so a missing file never leaves a broken page."""
+    icon = SPORT_ICON.get(sport, SPORT_ICON["table-tennis"])
+    return (f'<div class="slot" style="aspect-ratio:{ratio}" role="img" '
+            f'aria-label="Placeholder for {filename}">'
+            f'<svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" '
+            f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{icon}</svg>'
+            f'<span class="slot__l">Image &middot; {filename}</span></div>')
+
+def img(src, alt, w, h, cls="", eager=False, style=""):
+    ld = 'fetchpriority="high"' if eager else 'loading="lazy"'
+    c = f' class="{cls}"' if cls else ""
+    s = f' style="{style}"' if style else ""
+    return (f'<img src="assets/img/{src}" alt="{html.escape(alt, quote=True)}" '
+            f'width="{w}" height="{h}" {ld} decoding="async"{c}{s}>')
+
+def shot(src, alt, cap, w, h):
+    return (f'<figure class="shot" data-reveal>{img(src, alt, w, h)}'
+            f'<figcaption>{cap}</figcaption></figure>')
+
+def phone(src, alt, w=780, h=1688):
+    return (f'<div class="phone"><div class="phone__d">{img(src, alt, w, h)}</div></div>')
+
+def meta_row(items):
+    cells = "".join(f'<div><dt>{k}</dt><dd>{v}</dd></div>' for k, v in items)
+    return f'<dl class="meta" data-reveal>{cells}</dl>'
+
+def shead(label, title_html, aside="", link=None):
+    a = f'<p class="lead body" style="max-width:48ch">{aside}</p>' if aside else ""
+    l = ""
+    if link:
+        l = f'<div>{tlink(link[0], link[1])}</div>'
+    row = f'<div class="shead__row"><div>{title_html}</div>{l}</div>' if link else title_html
+    return (f'<div class="shead" data-reveal><p class="label">{label}</p>{row}{a}</div>')
+
+# -------------------------------------------------------------------- chrome
+def header(current, over_hero=False):
+    links = ""
+    for i, (label, href) in enumerate(NAV, 1):
+        cur = ' aria-current="page"' if href == current else ""
+        links += f'<a href="{href}"{cur}>{label}<sup>0{i}</sup></a>'
+    menu_links = "".join(f'<a href="{h}">{l}</a>' for l, h in NAV)
+    cls = "hdr" + ("" if over_hero else " hdr--static")
+    dark = ' style="color:#fff"' if over_hero else ""
+    return f"""<header class="{cls}"{dark}>
+  <div class="wrap hdr__in">
+    <a class="mark" href="index.html" aria-label="Akintayo, home">AKINTAYO<i></i></a>
+    <nav class="nav" aria-label="Primary">{links}</nav>
+    <div class="hdr__cta">{btn("Start a project", mail(), "primary" if not over_hero else "pear")}</div>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
   </div>
 </header>
-
-<div class="menu" id="mobile-menu" aria-hidden="true">
-  <nav class="menu__list" aria-label="Mobile">{menu}</nav>
-  <div class="menu__foot">
-    <p class="mono">Email only — no forms, no calls to book.</p>
-    <a class="cta__mail" style="font-size:clamp(1.1rem,5vw,1.7rem)" href="{mail()}">{EMAIL}</a>
-  </div>
+<div class="menu" id="menu" aria-label="Menu">
+  <button class="menu__close" type="button" aria-label="Close menu">&times;</button>
+  {menu_links}
+  <p class="menu__mail"><a href="{mail()}" style="color:inherit">{EMAIL}</a></p>
 </div>"""
 
-
-def cta_block(title, sub, sub2=None):
-    extra = f'<p class="mono" style="margin-top:1.6rem">{sub2}</p>' if sub2 else ""
-    return f"""<section class="cta section">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap" style="position:relative;z-index:2">
-    <p class="mono eyebrow" data-reveal="fade">Contact</p>
-    <h2 class="display h2" data-reveal style="margin-top:1.4rem;max-width:18ch">{title}</h2>
-    <p class="lead lead--wide" data-reveal style="margin-top:1.4rem">{sub}</p>
-    <div style="margin-top:clamp(2.2rem,5vw,3.6rem)" data-reveal>
-      <a class="cta__mail" href="{mail()}">{EMAIL}</a>
+def cta():
+    return f"""<section class="cta">
+  <div class="wrap">
+    <p class="label" data-reveal style="color:var(--pear)">Have a project?</p>
+    <h2 class="cta__h" data-reveal>LET&rsquo;S <em class="it">play.</em></h2>
+    <a class="cta__mail" href="{mail()}" data-reveal>{EMAIL}</a>
+    <div class="cta__row" data-reveal>
+      <p>Tell me about your team, club or store. I&rsquo;ll look properly and reply with scope and price in writing.</p>
+      {btn("Start a project", mail(), "light")}
     </div>
-    {extra}
   </div>
 </section>"""
 
-
 def footer():
-    cols = ""
-    for title, items in [
-        ("Site", NAV),
-        ("Work", [("Table Tennis USA", "table-tennis-usa.html"),
-                  ("GEWO USA", "gewo-usa.html"),
-                  ("Paul David", "paul-david.html")]),
-    ]:
-        li = "".join(f'<a class="foot__link" href="{h}">{t}</a>' for t, h in items)
-        cols += f'<nav class="foot__col" aria-label="{title}"><p class="mono">{title}</p>{li}</nav>'
-    return f"""<footer class="foot">
+    pages = "".join(f'<li><a href="{h}">{l}</a></li>' for l, h in NAV)
+    sports = "".join(f'<li><a href="sports.html#{sid}">{name}</a></li>'
+                     for sid, name, _ in SPORTS[:4])
+    sports += '<li><a href="sports.html#field-hockey">Field &amp; ice hockey</a></li>'
+    return f"""<footer class="ftr">
   <div class="wrap">
-    <div class="foot__grid">
-      <div class="foot__brand">
-        <a class="logo" href="index.html"><span class="logo__ball"></span>AKINTAYO</a>
-        <p style="color:var(--fg-2);max-width:30ch">Website design, ecommerce and conversion work for the table tennis industry.</p>
-        <p class="mono">Akingbehin Akintayo — working with clients internationally from Nigeria</p>
-      </div>
-      {cols}
-      <div class="foot__mail">
-        <p class="mono">Email</p>
-        <a class="foot__link" href="{mail()}" style="word-break:break-word">{EMAIL}</a>
-        <p class="mono" style="margin-top:.4rem">Email is the only contact method.</p>
-      </div>
+    <div class="ftr__top">
+      <div><span class="mark" aria-hidden="true">AKINTAYO<i></i></span></div>
+      <div><h3>Pages</h3><ul>{pages}</ul></div>
+      <div><h3>Sports</h3><ul>{sports}</ul></div>
+      <div><h3>Contact</h3><ul>
+        <li><a href="{mail()}">{EMAIL}</a></li>
+        <li>Osun State, Nigeria</li>
+        <li>Working worldwide</li>
+      </ul></div>
     </div>
-    <div class="foot__wordmark" aria-hidden="true">AKINTAYO</div>
-    <div class="foot__bar">
-      <p class="mono">&copy; <span data-year>2026</span> Akingbehin Akintayo</p>
-      <p class="mono">akintayoakingbehin.com</p>
+    <div class="ftr__bot">
+      <span>&copy; {YEAR} Akingbehin Akintayo</span>
+      <span>Sports web design</span>
+      <span data-clock>03:16 AM GMT+1</span>
     </div>
   </div>
-</footer>"""
+</footer>
+<div class="sticky" aria-hidden="false">
+  <span style="font-size:.9rem">Have a project?</span>
+  {btn("Start", mail(), "light")}
+</div>"""
 
+FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
+         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
+         'family=Archivo:wght@400;500;600;700;800&'
+         'family=Instrument+Serif:ital@1&'
+         'family=Martian+Mono:wght@400;500&display=swap">')
 
-def page(fname, title, desc, current, body, og_img="og-default.jpg"):
-    doc = f"""<!doctype html>
+def page(fname, title, desc, current, body, og="og-default.jpg", jsonld="", over_hero=False):
+    doc = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="{desc}">
+<meta name="description" content="{html.escape(desc, quote=True)}">
 <link rel="canonical" href="{DOMAIN}/{fname}">
-<meta name="theme-color" content="#08090b">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="AKINTAYO">
-<meta property="og:title" content="{title}">
-<meta property="og:description" content="{desc}">
+<meta property="og:title" content="{html.escape(title, quote=True)}">
+<meta property="og:description" content="{html.escape(desc, quote=True)}">
 <meta property="og:url" content="{DOMAIN}/{fname}">
-<meta property="og:image" content="{DOMAIN}/{og_img}">
+<meta property="og:image" content="{DOMAIN}/assets/img/{og}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="{FONTS}">
-<link rel="stylesheet" href="site.css">
+<meta name="twitter:title" content="{html.escape(title, quote=True)}">
+<meta name="twitter:description" content="{html.escape(desc, quote=True)}">
+<meta name="twitter:image" content="{DOMAIN}/assets/img/{og}">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+{FONTS}
+<link rel="stylesheet" href="css/site.css">
+{jsonld}
 </head>
 <body>
-{header(current)}
+<a class="skip" href="#main">Skip to content</a>
+{header(current, over_hero)}
 <main id="main">
 {body}
 </main>
 {footer()}
-<script src="site.js" defer></script>
+<script src="js/site.js" defer></script>
 </body>
 </html>
 """
@@ -161,1777 +207,957 @@ def page(fname, title, desc, current, body, og_img="og-default.jpg"):
     return fname
 
 
-# ------------------------------------------------------------------ fragments
-def lines(*rows, cls="display hero__title", onload=False):
-    inner = "".join(f'<span class="line"><span>{r}</span></span>' for r in rows)
-    ol = ' data-onload' if onload else ''
-    return f'<h1 class="{cls} lines"{ol}>{inner}</h1>'
-
-def h2lines(*rows, cls="display h2"):
-    inner = "".join(f'<span class="line"><span>{r}</span></span>' for r in rows)
-    return f'<h2 class="{cls} lines">{inner}</h2>'
-
-def shead(no, kicker, title, aside=""):
-    a = f'<div class="shead__aside" data-reveal><p>{aside}</p></div>' if aside else ""
-    return f"""<div class="shead">
-  <div class="shead__no" data-reveal="fade"><p class="mono mono--accent">{no}</p><p class="mono">{kicker}</p></div>
-  <div class="shead__title">{h2lines(*title)}</div>
-  {a}
-</div>"""
-
-
-def portrait(src, alt, tag=None, cls="", eager=False):
-    """The supplied photograph, unmodified. All blue/green treatment sits on
-    the frame around it — never a filter or overlay on the image itself."""
-    t = (f'<span class="portrait__tag"><i></i>{tag}</span>') if tag else ""
-    # Above the fold the photograph must not lazy-load, or the page opens on a hole.
-    ld = 'fetchpriority="high" decoding="async"' if eager else 'loading="lazy" decoding="async"'
-    rv = '' if eager else ' data-reveal'
-    return f"""<div class="portrait-wrap{(' ' + cls) if cls else ''}"{rv}>
-  <figure class="portrait">
-    <img src="{src}" alt="{alt}" width="1200" height="1800" {ld}>
-    {t}
-  </figure>
-</div>"""
-
-
-def shot(src, cap, w, h, url=None, cls="", alt=None, zoom=True):
-    """A real screenshot, presented as evidence. The brand treatment is on the
-    frame only; the image itself is never filtered, tinted or overlaid, so what
-    a visitor sees is what the client's analytics or storefront actually showed.
-    A chrome bar is added only for captures of live websites.
-
-    alt carries the figure in words, for screen readers and for anyone whose
-    images fail to load. cap is the visible caption and states the report, the
-    date range and when the capture was taken. zoom wraps the frame in a real
-    button so the original file opens full size by click or keyboard."""
-    bar = ('<div class="shot__bar"><span class="shot__dots"><i></i><i></i><i></i></span>'
-           f'<span class="shot__url">{url}</span></div>') if url else ""
-    c = (" " + cls) if cls else ""
-    a = alt if alt else re.sub(r"<[^>]+>", "", cap)
-    img = (f'<img src="{src}" alt="{a}" width="{w}" height="{h}" '
-           f'loading="lazy" decoding="async">')
-    if zoom:
-        esc = a.replace('"', "&quot;")
-        ecap = re.sub(r"<[^>]+>", "", cap).replace('"', "&quot;")
-        frame = (f'<button type="button" class="shot__open" data-lightbox="{src}" '
-                 f'data-alt="{esc}" data-caption="{ecap}" '
-                 f'aria-label="Open full size: {esc}">'
-                 f'<span class="shot__frame">{bar}{img}'
-                 f'<span class="shot__zoom">Tap to enlarge</span></span></button>')
-    else:
-        frame = f'<div class="shot__frame">{bar}{img}</div>'
-    return f"""<figure class="shot{c}" data-reveal>
-  {frame}
-  <figcaption class="shot__cap">{cap}</figcaption>
-</figure>"""
-
-
-def obars(rows):
-    """Completed orders by period. Counts, not rates: a change in how sessions
-    are measured cannot move these bars, which is the whole point of leading
-    with them."""
-    top = max(r[1] for r in rows)
-    out = ""
-    for i, (label, val, now) in enumerate(rows):
-        cls = " obar--now" if now else ""
-        out += (f'<div class="obar{cls}"><p class="obar__v">{val:,}</p>'
-                f'<div class="obar__col" style="--h:{val / top * 100:.0f}%;'
-                f'--d:{i * .13:.2f}s"></div>'
-                f'<span class="obar__x">{label}</span></div>')
-    return f'<div class="obars" data-reveal>{out}</div>'
-
-
-def flag(title, *paras):
-    ps = "".join(f"<p>{x}</p>" for x in paras)
-    return f'<div class="flag" data-reveal><h4>{title}</h4>{ps}</div>'
-
-
-def shotgrid(*shots, cls=""):
-    c = (" " + cls) if cls else ""
-    return f'<div class="shotgrid{c}" data-stagger>{"".join(shots)}</div>'
-
-def receipts(*shots):
-    return f'<div class="receipts" data-stagger>{"".join(shots)}</div>'
-
-def funnel(rows):
-    """rows = [(stage, value, note, pct_of_sessions, is_final), ...]"""
-    out = ""
-    for i, (k, v, note, pct, end) in enumerate(rows):
-        cls = " funnel__row--end" if end else ""
-        out += (f'<div class="funnel__row{cls}"><p class="funnel__k">{k}</p>'
-                f'<div class="funnel__track"><span class="funnel__fill" '
-                f'style="--w:{pct}%;--d:{i * .12:.2f}s"></span></div>'
-                f'<p class="funnel__v">{v}<small>{note}</small></p></div>')
-    return f'<div class="funnel" data-reveal>{out}</div>'
-
-
-def cutout(webp, png, alt, w, h):
-    """The supplied photograph with its background removed, sitting directly on
-    the page. No frame, no filter, no overlay — the only edit to the file is a
-    transparency fade at the bottom so it does not end on a hard horizontal cut.
-    WebP first for weight, PNG kept as the fallback for anything that cannot
-    read it."""
-    return f"""<div class="cutout">
-  <picture>
-    <source srcset="{webp}" type="image/webp">
-    <img src="{png}" alt="{alt}" width="{w}" height="{h}" fetchpriority="high" decoding="async">
-  </picture>
-</div>"""
-
-
-PROJECTS = [
-    dict(no="01", name="Table Tennis USA", href="table-tennis-usa.html",
-         tags=["Ecommerce", "Shopify", "Redesign &amp; CRO"],
-         res="234 &rarr; 615 completed orders a month",
-         stat="615", sub="Completed orders in the 30 days to 4 Nov 2026 — from 234 in July", live="tabletennisstore.us"),
-    dict(no="02", name="GEWO USA", href="gewo-usa.html",
-         tags=["Ecommerce", "Shopify", "Manufacturer store"],
-         res="1.2s largest paint, zero layout shift",
-         stat="1201ms", sub="Largest Contentful Paint, 75th percentile — rated Good", live="gewousa.com"),
-    dict(no="03", name="Paul David", href="paul-david.html",
-         tags=["Coaching practice", "Services &amp; booking"],
-         res="Four services, one booking path",
-         stat="4", sub="Services, each with its own one-click booking email", live="pauldavidcoach.com"),
-]
-
-def worklist(show_live=False):
-    rows = ""
-    for p in PROJECTS:
-        tags = "".join(f'<span class="tag">{t}</span>' for t in p["tags"])
-        res = p["res"] if not show_live else f'{p["res"]}'
-        rows += f"""<a class="workrow" href="{p['href']}" data-cursor="View case"
-   data-peek-stat="{p['stat']}" data-peek-sub="{p['sub']}" data-reveal>
-  <div class="workrow__in">
-    <p class="workrow__no mono mono--accent">{p['no']}</p>
-    <div class="workrow__name"><h3 class="workrow__title">{p['name']}</h3></div>
-    <div class="workrow__tags">{tags}</div>
-    <p class="workrow__res mono mono--fg">{res}</p>
-    <span class="workrow__go">{BIGARROW}</span>
-  </div>
-</a>"""
-    return f'<div class="worklist" data-stagger>{rows}</div>'
-
-
-def meta_rail(items):
-    dl = "".join(f'<div class="meta__item"><dt class="mono">{k}</dt><dd>{v}</dd></div>' for k, v in items)
-    return f'<dl class="meta" data-reveal="fade">{dl}</dl>'
-
-def beat(no, title, paras):
-    ps = "".join(f"<p>{p}</p>" for p in paras)
-    return f"""<div class="beat" data-reveal>
-  <h3 class="beat__h"><i>{no}</i><span>{title}</span></h3>
-  <div class="prose">{ps}</div>
-</div>"""
-
-ARC = """<div class="arc" aria-hidden="true">
-  <svg viewBox="0 0 820 470" fill="none" preserveAspectRatio="xMidYMid meet">
-    <path d="M-10 462 C 150 110, 300 30, 418 206 S 655 438, 806 126"/>
-    <circle cx="806" cy="126" r="8"/>
-  </svg>
-</div>"""
-
-
 # ===================================================================== HOME ==
 def build_home():
+    sports_rows = ""
+    for i, (sid, name, desc) in enumerate(SPORTS, 1):
+        sports_rows += f"""<a class="srow" href="sports.html#{sid}">
+  <span class="srow__n">0{i}</span>
+  <span class="srow__b"><span class="srow__t">{name}</span><span class="srow__d">{desc}</span></span>
+  {slot_prev(sid)}
+  {circ()}
+</a>"""
+
+    mq = ('<span>TABLE TENNIS</span><em>football</em><span>CRICKET</span>'
+          '<em>volleyball</em><span>FIELD HOCKEY</span><em>ice hockey</em>')
+
     services = [
-        ("01", "Website design from scratch",
-         "A complete site for a business that has never had one, or one that has outgrown what it has. Structure, design, build, launch."),
-        ("02", "Ecommerce website design",
-         "Catalogue architecture, collection pages, product pages, filtering, cart and checkout — built for people buying equipment."),
-        ("03", "Website redesign",
-         "Rebuilding an existing store without losing what already works: rankings, product data, URLs and the habits of returning customers."),
-        ("04", "Conversion-focused optimisation",
-         "Working on a site that already exists, on the path from arrival to completed order. Fewer dead ends, fewer reasons to leave."),
+        ("01", "Website design from scratch", "New clubs, academies, coaches and brands launching direct."),
+        ("02", "Ecommerce website design", "Stores for equipment, kits and gear that make buying easy."),
+        ("03", "Website redesign", "A new look and a clearer path, without losing your content."),
+        ("04", "Conversion optimisation", "More sign-ups and sales from the traffic you already have."),
     ]
-    cards = "".join(f"""<article class="card card--quarter" data-reveal>
-  <p class="card__no mono">{n}</p>
-  <h3 class="h4">{t}</h3>
-  <p class="card__body">{d}</p>
-</article>""" for n, t, d in services)
+    scols = "".join(f'<div class="scol" data-reveal><p class="scol__n">{n}</p>'
+                    f'<h3 class="scol__t">{t}</h3><p class="scol__d">{d}</p></div>'
+                    for n, t, d in services)
 
-    segments = [
-        ("Equipment brands", "Manufacturers and brands selling direct."),
-        ("Online &amp; retail stores", "Multi-brand shops with deep catalogues."),
-        ("Distributors", "Wholesale and regional supply businesses."),
-        ("Coaches &amp; academies", "Lessons, camps and clinics — no cart required."),
-        ("Clubs &amp; organisations", "Memberships, leagues, facilities and fixtures."),
-        ("Tournaments &amp; events", "Entries, schedules, results and sponsors."),
-    ]
-    segs = "".join(f"""<div class="seg" data-reveal>
-  <span class="seg__i">{i+1:02d}</span>
-  <div><h3 class="seg__t">{t}</h3><p class="seg__d">{d}</p></div>
-</div>""" for i, (t, d) in enumerate(segments))
-
-    steps = [
-        ("01", "Learn the catalogue", "What you sell and how it is organised: brands, categories, specifications, price bands."),
-        ("02", "Map the buying path", "Landing page to completed order, written out, with the stalling points marked."),
-        ("03", "Design and build", "A working site, not a concept file for someone else to interpret."),
-        ("04", "Measure and refine", "Changes made on what the numbers show rather than what looks better."),
-    ]
-    steplist = "".join(f"""<div class="step" data-reveal>
-  <p class="step__no mono mono--accent">{n}</p>
-  <h3 class="step__t">{t}</h3>
-  <p class="step__d">{d}</p>
-</div>""" for n, t, d in steps)
-
-    marquee_items = ["Ecommerce design", "Website redesign", "Conversion optimisation",
-                     "Shopify builds", "Product page design", "Catalogue architecture",
-                     "Checkout flow", "Coaching &amp; club sites"]
-    mset = "".join(f'<span class="marquee__item"><i></i>{m}</span>' for m in marquee_items)
+    jsonld = """<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Person","name":"Akingbehin Akintayo",
+"alternateName":"Akintayo","jobTitle":"Web designer and developer",
+"email":"mailto:akintayo@akintayoakingbehin.com","url":"https://akintayoakingbehin.com",
+"address":{"@type":"PostalAddress","addressRegion":"Osun State","addressCountry":"NG"},
+"knowsAbout":["Sports web design","Shopify","Ecommerce UX","Conversion optimisation"]}
+</script>"""
 
     body = f"""
 <section class="hero">
-  <div class="aura" aria-hidden="true"></div>
-  {ARC}
-  <div class="wrap hero__inner">
-    <div class="hero__top">
-      <p class="mono eyebrow" data-reveal="fade" data-onload>Website design &mdash; table tennis industry</p>
-      <span class="status" data-reveal="fade" data-onload><span class="status__dot"></span>Available for projects</span>
-    </div>
-    {lines('Websites for', 'the <span class="accent">table tennis</span>', 'industry.', onload=True)}
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>I design and build ecommerce stores, new sites, redesigns and conversion
-        work for table tennis brands, retailers, distributors, clubs and coaches &mdash; around how players
-        actually choose a blade, a rubber and a sponge thickness.</p>
-      </div>
-      <div class="hero__actions" data-reveal data-onload>
-        <a class="btn btn--ghost" href="work.html" data-magnet="0.22"><span>See the work</span>{ARROW}</a>
-        <a class="btn btn--primary" href="{mail()}" data-magnet="0.22"><span>Start a project</span>{ARROW}</a>
-      </div>
-    </div>
+  <div class="hero__panel">{img("akintayo-cutout.png","Akingbehin Akintayo",850,1194,eager=True)}</div>
+  <div class="hero__strip" aria-hidden="true">
+    <div class="mqv"><div class="mqv__t">AKINTAYO &copy; SPORTS WEB DESIGN &copy; AKINTAYO &copy; SPORTS WEB DESIGN &copy;</div></div>
   </div>
-</section>
-
-<section class="proof">
-  <div class="wrap">
-    <a class="proof__link" href="table-tennis-usa.html" data-cursor="Case study">
-      <div class="proof__k">
-        <p class="mono mono--accent">Flagship project</p>
-        <p class="mono">Table Tennis USA (tabletennisstore.us) &mdash; completed orders a month</p>
-      </div>
-      <div class="proof__figs">
-        <span class="fig">234</span><span class="fig fig__sep">&rarr;</span>
-        <span class="fig fig--now">615</span>
-      </div>
-      <p class="proof__go mono mono--fg">July to 4 Nov 2026<br>read the case &rarr;</p>
-    </a>
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="split" style="align-items:flex-end">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">The evidence, not the adjective</p>
-        <h2 class="display h3" style="margin-top:1.1rem;max-width:17ch">Open any of these. They are his dashboard, not mine.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>Carts rose about a third between July and November. Completed orders rose by 163%. The share of carts
-        that made it as far as checkout went from half to almost all.</p>
-        <p>The case study shows every period, including the two months the store was falling, and explains the one
-        number on it that cannot be taken at face value.</p>
-      </div>
+  <a class="hero__badge" href="contact.html" aria-label="Available for projects worldwide. Get in touch.">
+    <svg viewBox="0 0 158 158" aria-hidden="true">
+      <defs><path id="bcirc" d="M79,79 m-58,0 a58,58 0 1,1 116,0 a58,58 0 1,1 -116,0"/></defs>
+      <g class="spin"><text font-family="Martian Mono, monospace" font-size="11" letter-spacing="2.2" fill="currentColor">
+        <textPath href="#bcirc">AVAILABLE FOR PROJECTS &#8226; WORLDWIDE &#8226; </textPath>
+      </text></g>
+    </svg>
+    <span class="mid" aria-hidden="true">{ARROW}</span>
+  </a>
+  <div class="wrap hero__in">
+    <h1 class="xl hero__h"><span class="ln"><span>WEBSITES</span></span><span class="ln"><span>BUILT FOR</span></span><span class="ln"><span>THE <em class="it">game.</em></span></span></h1>
+    <p class="hero__lead">Websites for clubs, academies, brands and stores in table tennis, football, cricket, volleyball and hockey.</p>
+    <div class="hero__btns">
+      {btn("See the work", "work.html", "light")}
+      {btn("Start a project", mail(), "outline")}
     </div>
-    {shotgrid(
-      shot("tts-nov-funnel.jpg",
-           "Shopify Analytics, 5 Oct&ndash;4 Nov 2026. <b>1,194 carts, 1,113 checkouts, 615 orders.</b> Captured 4 November 2026.",
-           1163, 280,
-           alt="Shopify Analytics for 5 October to 4 November 2026: 15,516 sessions, 1,194 added to cart, 1,113 reached checkout, 615 completed checkout, conversion rate 3.96%"),
-      shot("tts-jul.jpg",
-           "Shopify Analytics, 1&ndash;31 July 2026. <b>899 carts, 466 checkouts, 234 orders.</b> Captured September 2026.",
-           934, 492,
-           alt="Shopify Analytics for July 2026: 16,349 sessions, 899 added to cart, 466 reached checkout, 234 completed checkout, conversion rate 1.43%"),
-      cls="shotgrid--2")}
-    <p class="updated" style="margin-top:1.4rem" data-reveal>Last updated 4 November 2026 &middot;
-    <a href="proof.html">See the proof log</a></p>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    {shead("01", "Positioning",
-           ["A generalist spends your first", "month learning this market.", "I already know it."],
-           "A specialist catalogue sold to specialist buyers.")}
-    <div class="split">
-      <div class="split__l prose" data-reveal>
-        <p>Someone buying rubber is choosing between inverted, short pips, long pips and anti-spin, then sponge
-        thickness, then ITTF approval. A coach is not selling a product at all, but a time slot.</p>
-        <p><strong>That detail is the whole job.</strong> It decides how a catalogue is structured, which filters
-        matter, and where a buyer hesitates.</p>
-      </div>
-      <div class="split__r" data-reveal data-delay="120">
-        <p class="mono" style="margin-bottom:1.2rem">What that changes in practice</p>
-        <ul class="checklist">
-          <li>Category structure that follows how players shop, not by brand alone.</li>
-          <li>Product pages built around the specifications buyers compare.</li>
-          <li>Filtering that survives pips, sponge thickness and speed ratings without dead ends.</li>
-          <li>Booking paths for coaches and clubs, where there is no cart and never should be.</li>
-        </ul>
-      </div>
+    <div class="hero__micro">
+      <span>Osun State, Nigeria &mdash; <span data-clock>03:16 AM GMT+1</span></span>
+      <span>Sports web design</span>
+      <span>Scroll &darr;</span>
     </div>
   </div>
 </section>
 
-<div class="marquee" aria-hidden="true">
-  <div class="marquee__track">
-    <div class="marquee__set">{mset}</div>
-    <div class="marquee__set">{mset}</div>
-  </div>
-</div>
+<div class="mq mq--sports" aria-hidden="true"><div class="mq__t">{mq}</div></div>
 
-<section class="section">
+<section class="sect">
   <div class="wrap">
-    {shead("02", "Selected work",
-           ["Three projects.", "One industry."],
-           "Two ecommerce stores and one coaching practice. I would rather show depth in a single sport than breadth across ten unrelated ones.")}
-    {worklist()}
-    <div style="margin-top:clamp(2rem,4vw,3rem)" data-reveal>
-      <a class="btn btn--ghost" href="work.html" data-magnet="0.22"><span>All work</span>{ARROW}</a>
+    <p class="label" data-reveal>( 01 ) &mdash; Studio</p>
+    <p class="statement" data-reveal style="margin-top:1.6rem">I design and build websites for sports <em class="it">clubs, academies, brands and stores</em> &mdash; so players, parents and fans find what they need in seconds.</p>
+    <div class="stats">
+      <div class="stat" data-reveal><p class="stat__v" data-count="163" data-pre="+" data-post="%">+163%</p><p class="stat__l">completed orders a month at TableTennisStore.us</p></div>
+      <div class="stat" data-reveal><p class="stat__v" data-count="93" data-post="%">93%</p><p class="stat__l">of carts reached checkout, up from 52% before the redesign</p></div>
+      <div class="stat" data-reveal><p class="stat__v" data-count="6">6</p><p class="stat__l">sports I design for &mdash; one designer, start to finish</p></div>
     </div>
   </div>
 </section>
 
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="court" aria-hidden="true"></div>
-  <div class="wrap" style="position:relative;z-index:2">
-    {shead("03", "Capabilities",
-           ["What I build."],
-           "Four services. Most projects are one of them; some are two running together.")}
-    <div class="deck" data-stagger>{cards}</div>
-    <div style="margin-top:clamp(2rem,4vw,3rem)" data-reveal>
-      <a class="btn btn--ghost" href="services.html" data-magnet="0.22"><span>Services in detail</span>{ARROW}</a>
+<section class="sect sect--tight">
+  <div class="wrap">
+    {shead("( 02 ) &mdash; Top projects", '<h2 class="tl">TWO FLAGSHIP<br><em class="it">sites.</em></h2>', link=("All work (5)", "work.html"))}
+    <div class="pcards">
+      <a class="pcard" href="fremont-table-tennis.html" data-reveal>
+        <span class="pcard__img">{img("fremont-home-desktop.jpg","Fremont Table Tennis Academy homepage after the redesign",1440,900)}</span>
+        <span class="pcard__meta"><span>
+          <span class="label">01 &mdash; Table tennis &middot; Club &amp; academy</span>
+          <span class="ts pcard__t" style="display:block">Fremont Table Tennis Academy</span>
+          <span class="pcard__d">A full redesign built around one question: which class is right for me?</span>
+        </span>{circ()}</span>
+      </a>
+      <a class="pcard" href="table-tennis-usa.html" data-reveal>
+        <span class="pcard__img">{img("tts-desk-c.jpg","TableTennisStore.us homepage",1440,760)}</span>
+        <span class="pcard__meta"><span>
+          <span class="label">02 &mdash; Table tennis &middot; Ecommerce</span>
+          <span class="ts pcard__t" style="display:block">TableTennisStore.us</span>
+          <span class="pcard__d">Shopify redesign and conversion work. Completed orders up 163%.</span>
+        </span>{circ()}</span>
+      </a>
     </div>
   </div>
 </section>
 
-<section class="section">
+<section class="sect moon">
   <div class="wrap">
-    {shead("04", "Clients",
-           ["Who I work with."],
-           "Everyone here sells something different, and the site has to reflect that. A distributor and a coach do not need the same website.")}
-    <div class="segs" data-stagger>{segs}</div>
+    {shead("( 03 ) &mdash; Sports", '<h2 class="tl">ONE DESIGNER.<br><em class="it">Six sports.</em></h2>')}
+    <div>{sports_rows}</div>
   </div>
 </section>
 
-<section class="section">
+<section class="sect">
   <div class="wrap">
-    {shead("05", "Process",
-           ["How a project", "actually runs."],
-           "Four stages, in order. Nothing is designed before the catalogue and the buying path are understood.")}
-    <div class="steps" data-stagger>{steplist}</div>
+    {shead("( 04 ) &mdash; Services", '<h2 class="tl">WHAT I<br><em class="it">do.</em></h2>', link=("All services", "services.html"))}
+    <div class="grid g-4">{scols}</div>
   </div>
 </section>
 
-<section class="section">
+<section class="sect dark">
   <div class="wrap">
-    {shead("06", "The person",
-           ["Built by a real person."],
-           "No account managers, no handoffs, and nobody the work quietly gets passed to after the pitch.")}
-    <div class="person">
-      <div class="person__media">
-        {portrait("akintayo.jpg",
-                  "Akingbehin Akintayo, the designer and developer behind AKINTAYO, in a studio portrait",
-                  tag="Available for projects")}
+    <div class="split--41 split">
+      <div>
+        <p class="label" data-reveal>( 05 ) &mdash; Client story</p>
+        <h2 class="tm" data-reveal style="margin-top:1.2rem">IN THEIR<br><em class="it" style="color:var(--pear)">own words.</em></h2>
+        <p class="body" data-reveal style="margin-top:1.4rem;max-width:34ch">A short video from a client I&rsquo;ve worked with.</p>
       </div>
-      <div class="person__body">
-        <div class="prose" data-reveal data-delay="120">
-          <p>I am Akingbehin Akintayo. I read your email, go through your store, design the pages and write the
-          code that ships them. <strong>Nobody else is on the thread.</strong></p>
-          <p>On Table Tennis USA, the person who mapped the buying path was the same person who rebuilt it.</p>
-        </div>
-        <div class="creds" data-reveal data-delay="180">
-          <span class="pill">Osun State, Nigeria &mdash; working worldwide</span>
-          <span class="pill">Shopify &amp; Liquid</span>
-          <span class="pill">Ecommerce UX &amp; CRO</span>
-        </div>
-        <div style="margin-top:clamp(1.6rem,3vw,2.2rem)" data-reveal data-delay="220">
-          <a class="btn btn--ghost" href="about.html" data-magnet="0.22"><span>More about me</span>{ARROW}</a>
-        </div>
+      <div>
+        <figure class="testimonial tvid" data-reveal>
+          <button class="tvid__poster" type="button" data-video aria-label="Play the client testimonial video">
+            {img("testimonial-poster.jpg","Still from the client testimonial video",720,1280,style="object-fit:contain;background:var(--royal)")}
+            <span class="play" aria-hidden="true"><svg width="22" height="26" viewBox="0 0 22 26" fill="currentColor"><path d="M22 13 0 26V0z"/></svg></span>
+            <span class="tvid__tag">Video &middot; testimonial.mp4</span>
+            <span class="tvid__dur">1:16</span>
+          </button>
+          <figcaption class="tvid__cap">
+            <span class="tvid__av" aria-hidden="true"></span>
+            <span>
+              <!-- TODO: client name / role / organisation -->
+              <strong style="display:block">Client name</strong>
+              <span class="body" style="font-size:.85rem">Role &middot; Organisation</span>
+            </span>
+            <span class="tvid__sport">Table tennis</span>
+          </figcaption>
+        </figure>
       </div>
     </div>
   </div>
 </section>
 
-{cta_block("Tell me about the site and the problem.",
-           "Send an email with your store or site, what is going wrong, and what you want it to do. I will tell you honestly whether I am the right person for it.",
-           "Email only &mdash; no forms, no calls to book, no chat widget.")}
+<dialog class="lbx" id="videoDialog" aria-label="Client testimonial video">
+  <button class="lbx__x" type="button" aria-label="Close the video">&times;</button>
+  <video controls playsinline preload="metadata" poster="assets/img/testimonial-poster.jpg" style="aspect-ratio:9/16;max-height:82vh;width:auto;margin-inline:auto">
+    <source src="assets/video/testimonial.mp4" type="video/mp4">
+    <!-- TODO: add <track kind="captions" src="assets/video/testimonial.vtt" srclang="en" label="English"> when the .vtt exists -->
+    <a href="assets/video/testimonial.mp4">Download the testimonial video</a>
+  </video>
+</dialog>
+
+{cta()}
 """
-    return page("index.html", "AKINTAYO — Website Design for Table Tennis",
-                "Website design, ecommerce and conversion work for the table tennis industry — "
-                "brands, stores, distributors, clubs and coaches. Case study: Table Tennis USA, "
-                "completed orders from 234 in July 2026 to 615 in the thirty days to 4 November, with every "
-                "Shopify Analytics screenshot attached.", "index.html", body)
+    return page("index.html", "Akintayo — Sports Web Design for Clubs, Brands & Stores",
+                "Websites for sports clubs, academies, brands and stores — table tennis, football, "
+                "cricket, volleyball and hockey. Designed and built by Akintayo.",
+                "index.html", body, jsonld=jsonld, over_hero=True)
+
+
+def slot_prev(sid):
+    """Hover preview on the home sports rows. Falls back to the styled
+    placeholder when the sport photo has not been supplied."""
+    import os as _os
+    f = f"sport-{sid}.jpg"
+    if _os.path.exists(_os.path.join(OUT, "assets", "img", f)):
+        return (f'<img class="srow__prev" src="assets/img/{f}" alt="" aria-hidden="true" '
+                f'width="300" height="190" loading="lazy">')
+    return ""
 
 
 # ===================================================================== WORK ==
+PROJECTS = [
+    dict(href="fremont-table-tennis.html", sport="table-tennis", pill="Top project",
+         label="Table tennis &middot; Club &amp; academy", name="Fremont Table Tennis Academy",
+         line="Redesign", im=("fremont-home-desktop.jpg", 1440, 900),
+         alt="Fremont Table Tennis Academy homepage after the redesign"),
+    dict(href="table-tennis-usa.html", sport="table-tennis", pill="Top project",
+         label="Table tennis &middot; Ecommerce", name="TableTennisStore.us",
+         line="Shopify &middot; +163% completed orders", im=("tts-desk-c.jpg", 1440, 760),
+         alt="TableTennisStore.us homepage"),
+    dict(href="gewo-usa.html", sport="table-tennis", pill=None,
+         label="Table tennis &middot; Manufacturer store", name="GEWO USA",
+         line="Shopify &middot; 1.2s largest paint, zero layout shift", im=("gewo-home.jpg", 1365, 1180),
+         alt="GEWO USA homepage"),
+    dict(href="octagon.html", sport="football", pill=None,
+         label="Football &middot; Sports marketing", name="Octagon",
+         line="Website design", im=("octagon-home.jpg", 1440, 900),
+         alt="Octagon website"),
+    dict(href="starting-eleven.html", sport="football", pill=None,
+         label="Football &middot; Retail store", name="Starting Eleven",
+         line="Shopify &middot; Lexington, KY", im=("starting-eleven-home.jpg", 1440, 640),
+         alt="Starting Eleven online store"),
+]
+
+def project_card(p):
+    pill = f'<span class="pcard__pill">{p["pill"]}</span>' if p["pill"] else ""
+    src, w, h = p["im"]
+    return f"""<a class="pcard" href="{p['href']}" data-sport="{p['sport']}" data-reveal>
+  {pill}
+  <span class="pcard__img">{img(src, p['alt'], w, h)}</span>
+  <span class="pcard__meta"><span>
+    <span class="label">{p['label']}</span>
+    <span class="ts pcard__t" style="display:block">{p['name']}</span>
+    <span class="pcard__d">{p['line']}</span>
+  </span>{circ()}</span>
+</a>"""
+
 def build_work():
+    cards = "".join(project_card(p) for p in PROJECTS)
+    tile = f"""<div class="ctatile" data-reveal>
+  <p class="label" style="color:var(--pear)">Your project next</p>
+  <h3>GOT A TEAM, CLUB OR <em class="it">store?</em></h3>
+  <div>{btn("Start a project", mail(), "light")}</div>
+</div>"""
     body = f"""
-<section class="hero" style="padding-bottom:clamp(1.6rem,3vw,2.6rem)">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>Work &mdash; 2 stores, 1 coaching practice</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('Three projects.', 'One industry.', onload=True)}
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>Every project below is a table tennis business. That is deliberate.
-        A portfolio of ten unrelated logos proves you can make things look good; a portfolio in one sport
-        proves you understand a market.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section section--tight">
+<section class="sect sect--tight">
   <div class="wrap">
-    {worklist(show_live=True)}
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">A note on proof</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">Only one of these projects has published numbers. I say so on the other two.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>Table Tennis USA has four consecutive periods of analytics, screenshots attached and openable, including
-        the two months the store was falling and a note on the one figure that cannot be taken at face value.
-        GEWO USA is a design case with no conversion data. Paul David has neither, and says so.</p>
-        <p><strong>A portfolio is worth more when you can trust the parts that are not flattering.</strong></p>
-      </div>
+    <p class="label" data-reveal>( Work ) &mdash; Five projects</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem">SELECTED<br><em class="it">work.</em></h1>
+    <div class="filters" style="margin-top:clamp(2.4rem,6vw,4rem)" role="group" aria-label="Filter projects by sport">
+      <button type="button" data-filter="all" aria-pressed="true">All &mdash; 5</button>
+      <button type="button" data-filter="table-tennis" aria-pressed="false">Table tennis &mdash; 3</button>
+      <button type="button" data-filter="football" aria-pressed="false">Football &mdash; 2</button>
     </div>
+    <div class="pcards">{cards}{tile}</div>
   </div>
 </section>
-
-{cta_block("Your project could be the fourth.",
-           "Brands, stores, distributors, clubs, coaches — if it is table tennis and it needs a website, describe it in an email.")}
 """
-    return page("work.html", "Work — AKINTAYO",
-                "Table tennis website projects by AKINTAYO: Table Tennis USA, GEWO USA and coach Paul David.",
-                "work.html", body)
+    return page("work.html", "Selected Work — Akintayo",
+                "Five sports website projects: Fremont Table Tennis Academy, TableTennisStore.us, "
+                "GEWO USA, Octagon and Starting Eleven.",
+                "work.html", body, og="fremont-home-desktop.jpg")
 
 
-# ====================================================== CASE: TABLE TENNIS USA
-def livebtn(url, label):
-    return f"""<div class="live" data-reveal>
-  <a class="btn btn--ghost" href="{url}" target="_blank" rel="noopener" data-magnet="0.22">
-    <span>{label}</span>{ARROW}</a>
-  <p class="mono">The work is live &mdash; judge it there</p>
-</div>"""
+# =================================================================== SPORTS ==
+SPORT_PAGE = [
+    ("table-tennis", "Table tennis", "Specialist", "01",
+     "My home sport. I know how a player chooses a blade, a rubber and a sponge thickness "
+     "&mdash; and how a club fills its classes.",
+     ["Equipment stores for blades, rubbers, tables", "Club, academy and coaching websites",
+      "Class booking, leagues and tournaments"]),
+    ("football", "Football", "Proven", "02",
+     "Clubs, academies and retail stores that need to be clear about fixtures, trials, kits "
+     "and where to buy.",
+     ["Club and academy websites", "Trial, camp and team registration",
+      "Fan shops, kits and fixtures"]),
+    ("cricket", "Cricket", "Now open", "03",
+     "Clubs and leagues live on fixtures, scorecards and results. I make them easy to find on a phone.",
+     ["Club and league websites", "Fixtures, scorecards and results",
+      "Bat and kit stores, coaching bookings"]),
+    ("volleyball", "Volleyball", "Now open", "04",
+     "Club, beach and school teams that need sign-ups, schedules and tournament brackets in one place.",
+     ["Club, beach and school team sites", "Tournament schedules and brackets",
+      "Team sign-up and payments"]),
+    ("field-hockey", "Field hockey", "Now open", "05",
+     "Clubs that want fixtures, tables and results to be clear, and sticks and kit to be easy to buy.",
+     ["Club and academy websites", "Fixtures, tables and results", "Stick and kit stores"]),
+    ("ice-hockey", "Ice hockey", "Now open", "06",
+     "Teams, rinks and leagues that need game schedules, standings and a jersey store fans actually use.",
+     ["Team, rink and league websites", "Game schedules and standings", "Jersey and merch stores"]),
+]
 
+def build_sports():
+    blocks = ""
+    for i, (sid, name, chip, num, para, items) in enumerate(SPORT_PAGE):
+        chipcls = "chip chip--solid" if chip in ("Specialist", "Proven") else "chip"
+        lis = "".join(f"<li>{x}</li>" for x in items)
+        f = f"sport-{sid}.jpg"
+        media = (f'<div>{img(f, name + " website work", 1600, 1200)}</div>'
+                 if os.path.exists(os.path.join(OUT, "assets", "img", f))
+                 else f'<div>{slot(f, sid)}</div>')
+        rev = " sblock--rev" if i % 2 else ""
+        blocks += f"""<section class="sblock{rev}" id="{sid}" data-reveal>
+  <div class="sblock__t">
+    <span class="{chipcls}">{chip}</span>
+    <p class="label" style="margin-top:1rem">{num}</p>
+    <h2>{name}</h2>
+    <p>{para}</p>
+    <ul>{lis}</ul>
+    {tlink(f"Start a {name.lower()} project", mail(f"{name} website project"))}
+  </div>
+  {media}
+</section>"""
 
-def flow(steps):
-    out = ""
-    for i, (t, d) in enumerate(steps):
-        out += f"""<div class="fstep" data-reveal>
-  <p class="fstep__n">{i+1:02d}</p>
-  <h3 class="fstep__t">{t}</h3>
-  <p class="fstep__d">{d}</p>
-</div>"""
-    return f'<div class="flow" data-stagger>{out}</div>'
-
-
-def build_ttusa():
-    problems = [
-        "No conversion-focused homepage layout",
-        "Weak product discovery for brand-loyal players",
-        "Thin trust signals on the pages that needed them",
-        "Unclear variant selection on equipment",
-        "Shipping cost arriving as a surprise at checkout",
-        "Broken breadcrumbs and SEO heading structure",
-    ]
-    probs = "".join(
-        f'<div class="prob" data-reveal="fade"><i>{i+1:02d}</i><span>{t}</span></div>'
-        for i, t in enumerate(problems))
-
-    role = ["UX design improvements", "Shopify theme customisation", "Homepage restructuring",
-            "Product page optimisation", "Conversion rate optimisation", "SEO structural fixes",
-            "Custom feature implementation"]
-    rolelist = "".join(f"<li>{r}</li>" for r in role)
-
-    sol = [
-        ("Homepage structure",
-         "Rebuilt to move a visitor through the store instead of leaving them to work it out.",
-         ["Hero section", "Trust bar", "Brand discovery", "Featured products", "New arrivals"]),
-        ("Trust signals",
-         "Placed early, where hesitation happens, rather than buried in a policy page.",
-         ["Authentic global table tennis brands", "Professional quality equipment",
-          "Secure checkout", "Trusted by players"]),
-        ("Product page improvements",
-         "Reworked around the moment of decision: compare the specification, then commit.",
-         ["Clearer layout and spacing", "Improved product image presentation",
-          "Trust messaging under the product price", "Improved quantity selector and purchase area"]),
-    ]
-    solcards = ""
-    for i, (t, d, items) in enumerate(sol):
-        li = "".join(f"<li>{x}</li>" for x in items)
-        solcards += f"""<article class="card card--third" data-reveal>
-  <p class="card__no mono">{i+1:02d}</p>
-  <h3 class="h4">{t}</h3>
-  <p style="color:var(--fg-2)">{d}</p>
-  <ul class="slist">{li}</ul>
-</article>"""
-
-    homeflow = flow([
-        ("Hero", "What the store is, in one screen."),
-        ("Trust bar", "Four reasons to believe it, before any product."),
-        ("Brand discovery", "Butterfly, GEWO, Stiga, Victas &mdash; players shop by brand."),
-        ("Featured products", "Proof the catalogue is deep and current."),
-        ("New arrivals", "A reason for returning customers to look again."),
-    ])
-
-    # Completed online-store checkouts, four consecutive periods. Counts rather
-    # than rates, because August's session count was inflated by junk traffic and
-    # Shopify changed how sessions are measured on 21 Sept 2026. Neither of those
-    # can move an order count.
-    orderbars = obars([
-        ("Jul 2026", 234, False),
-        ("Aug 2026", 296, False),
-        ("Sep 2026", 353, False),
-        ("5 Oct&ndash;4 Nov", 615, True),
-    ])
-
-    # The funnel, every period, exactly as the dashboard reported it.
-    funnelrows = [
-        ("Jul 1&ndash;31, 2026",    "16,349", "899",   "466",   "234", "1.43%", False),
-        ("Aug 1&ndash;31, 2026",    "43,520", "1,076", "608",   "296", "0.68%", True),
-        ("Sep 1&ndash;30, 2026",    "18,037", "1,084", "719",   "353", "1.95%", False),
-        ("5 Oct&ndash;4 Nov, 2026", "15,516", "1,194", "1,113", "615", "3.96%", False),
-    ]
-    trows = ""
-    for period, sess, carts, checks, done, cvr, split in funnelrows:
-        cls = ' class="is-split"' if split else ""
-        trows += (f'<tr{cls}><td>{period}</td><td class="num">{sess}</td>'
-                  f'<td class="num">{carts}</td><td class="num">{checks}</td>'
-                  f'<td class="num hl">{done}</td><td class="num">{cvr}</td></tr>')
-
-    julyfunnel = funnel([
-        ("Sessions",           "16,349", "all traffic",        100,  False),
-        ("Added to cart",      "899",    "5.5% of sessions",   5.5,  False),
-        ("Reached checkout",   "466",    "52% of those carts", 52,   False),
-        ("Completed checkout", "234",    "50% of checkouts",   50,   True),
-    ])
-
-    nowfunnel = funnel([
-        ("Sessions",           "15,516", "all traffic",        100,  False),
-        ("Added to cart",      "1,194",  "7.7% of sessions",   7.7,  False),
-        ("Reached checkout",   "1,113",  "93% of those carts", 93,   False),
-        ("Completed checkout", "615",    "55% of checkouts",   55,   True),
-    ])
-
-    stats = [
-        ("+163%", "Completed orders, July against the thirty days to 4 November 2026", True),
-        ("+33%", "Carts over the same period &mdash; a third more carts, two and a half times the orders", False),
-        ("26% &rarr; 52%", "Share of carts that became an order", False),
-        ("50% &rarr; 93%", "Share of carts that reached checkout at all", False),
-    ]
-    statrow = "".join(
-        f"""<div class="stat{' stat--hl' if hl else ''}" data-reveal>
-  <p class="stat__v">{v}</p><p class="stat__l mono">{l}</p>
-</div>""" for v, l, hl in stats)
+    built = ["Clubs", "Academies", "Equipment brands", "Online stores",
+             "Distributors", "Coaches", "Leagues &amp; tournaments"]
+    chips = "".join(f'<span class="chip">{b}</span>' for b in built)
 
     body = f"""
-<section class="case-hero">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>Case study 01 &mdash; Shopify ecommerce</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('Table Tennis', '<span class="accent">USA</span>', cls="display case-hero__title", onload=True)}
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>A Shopify store selling table tennis equipment across
-        the United States. In July it completed <strong>234</strong> orders. In the thirty days to 4 November 2026 it
-        completed <strong>615</strong>. Every figure on this page opens as the screenshot it came from.</p>
-      </div>
-    </div>
-    {livebtn("https://tabletennisstore.us/", "Open the live store")}
-    {meta_rail([
-        ("Client", "Table Tennis USA"),
-        ("Sector", "Table tennis ecommerce"),
-        ("Platform", "Shopify"),
-        ("Role", "UX design, theme customisation, CRO, SEO"),
-        ("Live site", '<a href="https://tabletennisstore.us/" target="_blank" rel="noopener">tabletennisstore.us &#8599;</a>'),
-        ("Measured", "Jul&ndash;Nov 2026, Shopify Analytics"),
-        ("Last updated", '4 Nov 2026 &middot; <a href="proof.html">proof log</a>'),
-    ])}
-  </div>
-</section>
-
-<section class="results section">
+<section class="sect sect--tight">
   <div class="wrap">
-    {shead("01", "Proof",
-           ["Same store.", "Two and a half times", "the orders."],
-           "Completed checkouts, four consecutive periods. Counts rather than percentages, for a reason explained below.")}
-
-    {orderbars}
-    <p class="note" style="margin-top:1.2rem">Completed online-store checkouts, as recorded in the store&rsquo;s
-    Shopify Analytics. Online store only &mdash; this excludes the store&rsquo;s other sales channels.</p>
-
-    {shot("tts-nov-funnel.jpg",
-          "Shopify Analytics, conversion rate breakdown. <b>15,516 sessions, 1,194 carts, 1,113 checkouts, 615 completed.</b> Range 5 Oct&ndash;4 Nov 2026 against 4 Sept&ndash;4 Oct 2026. Captured 4 November 2026.",
-          1163, 280,
-          alt="Shopify Analytics for 5 October to 4 November 2026: 15,516 sessions, 1,194 added to cart, 1,113 reached checkout, 615 completed checkout, conversion rate 3.96%")}
-
-    <div class="statrow" style="margin-top:clamp(2.4rem,5vw,4rem)" data-stagger>{statrow}</div>
-
-    <div style="margin-top:clamp(2.6rem,5vw,4rem)" data-reveal>
-      <p class="mono eyebrow" style="margin-bottom:1.2rem">Every period, every stage</p>
-      <div class="dtable-wrap">
-        <table class="dtable">
-          <thead><tr><th>Period</th><th class="num">Sessions</th><th class="num">Carts</th><th class="num">Checkouts</th><th class="num">Orders</th><th class="num">Conv. rate</th></tr></thead>
-          <tbody>{trows}</tbody>
-        </table>
-      </div>
-      <p class="note" style="margin-top:1rem">Read the Orders column. It rises every period. The conversion-rate
-      column does not behave the same way, and the two call-outs below explain why.</p>
-    </div>
-
-    <div style="margin-top:clamp(2.6rem,5vw,4rem)">
-      <p class="mono eyebrow" style="margin-bottom:1.2rem" data-reveal>Why this page leads with orders, not conversion rate</p>
-
-      {flag("1 &mdash; August&rsquo;s traffic was not real",
-            "August recorded 43,520 sessions against July&rsquo;s 16,349. Almost all of the increase came from one "
-            "place: <strong>Singapore went from a handful of sessions to 21,500</strong>, and desktop sessions rose "
-            "268%. By September it had collapsed back to 789.",
-            "Conversion rate is orders divided by sessions. Roughly 25,000 sessions that were never going to buy "
-            "anything pushed August down to 0.68%. <strong>The store did not get five times worse in August, and it "
-            "has not become five times better since.</strong> Anyone who quotes 0.68% to 3.96% at you, including me, "
-            "is quoting a number with a hole in it.")}
-
-      {shot("tts-sep-location.jpg",
-            "Shopify Analytics, sessions by location, 1&ndash;30 Sept 2026 against 2&ndash;31 Aug 2026. The pale bar is August. <b>Singapore 21.5K falling to 789, down 96%.</b> Captured 4 November 2026.",
-            754, 330, cls="shot--narrow",
-            alt="Shopify sessions by location for September 2026 compared with August: Singapore down 96% from 21,500 sessions to 789, China down 80% from 4,100 to 818")}
-
-      {flag("2 &mdash; Shopify changed how it counts sessions",
-            "A notice on the analytics page reads: &ldquo;Beginning Sept 21, 2026, sessions and related metrics may "
-            "shift as Shopify Analytics enables better visibility into real shopper activity.&rdquo; A "
-            "<em>Definition change</em> marker sits on the September chart at that date.",
-            "So any conversion rate spanning 21 September is not a like-for-like comparison with one before it. "
-            "Order counts are unaffected, which is why they are the headline on this page.")}
-    </div>
-
-    <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
-      <div class="split__l" data-reveal>
-        <h3 class="display h3" style="max-width:18ch">What I will and will not claim.</h3>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p><strong>What I claim:</strong> completed orders went 234, 296, 353, 615 across four consecutive periods,
-        carts rose about a third over the same stretch, and the share of carts that reached checkout went from half
-        to almost all. Every one of those is on a screenshot on this page.</p>
-        <p><strong>What I do not:</strong> that every order is down to me. Traffic mix and seasonality move month to
-        month, Black Friday trading sits inside the last window, and no single change isolates a cause.</p>
-        <p><strong>And what this page deliberately leaves out:</strong> revenue. The store&rsquo;s sales figures are
-        the client&rsquo;s to publish, not mine, so you will not find a dollar amount anywhere on this site.</p>
-      </div>
-    </div>
+    <p class="label" data-reveal>( Sports ) &mdash; Six of them</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem">ONE DESIGNER.<br><em class="it">Six sports.</em></h1>
+    <p class="lead body" data-reveal style="margin-top:1.8rem;max-width:52ch">Every sport has its own buyers, fans and habits. A rubber is specified, a class is booked, a fixture is checked, a jersey is browsed. I design around what your audience actually does.</p>
   </div>
 </section>
 
-<section class="section section--tight">
+<section class="sect" style="padding-top:0">
+  <div class="wrap">{blocks}</div>
+</section>
+
+<section class="sect sect--tight">
   <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">Project overview</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">A big catalogue that was hard to shop.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>In July 2026 the store pulled <strong>16,349 sessions</strong> and converted 234 of them. Only 5.5% of
-        those visitors ever reached a cart.</p>
-        <p>That is not a traffic problem and it is not a pricing problem. It was a business losing orders inside its
-        own catalogue, and then losing a second batch between the cart and the card.</p>
-      </div>
+    <div class="builtfor" data-reveal>
+      <span class="label" style="margin-right:1rem">Built for</span>{chips}
     </div>
   </div>
 </section>
 
-<section class="results section">
-  <div class="wrap">
-    {shead("02", "Diagnosis",
-           ["Where the orders", "were leaking."],
-           "July 2026, before the work. Of every hundred arrivals, five reached a cart, and half of the ones who reached checkout never finished.")}
-
-    <p class="mono eyebrow" style="margin-bottom:1rem" data-reveal>July 2026, before the work</p>
-    {julyfunnel}
-    <p class="note" style="margin-top:1rem">Each bar is that step&rsquo;s conversion from the step immediately
-    before it. Counts exactly as Shopify recorded them for 1&ndash;31 July 2026.</p>
-
-    {shot("tts-jul.jpg",
-          "Shopify Analytics, conversion rate breakdown, 1&ndash;31 July 2026 against 31 May&ndash;30 June 2026. <b>16,349 sessions, 899 carts, 466 checkouts, 234 orders.</b> July was itself down 31% on June. Captured September 2026.",
-          934, 492,
-          alt="Shopify Analytics for July 2026: 16,349 sessions, 899 added to cart, 466 reached checkout, 234 completed checkout, conversion rate 1.43%, down 31% on the previous period")}
-
-    <div class="split" style="margin-top:clamp(2.4rem,5vw,3.6rem)">
-      <div class="split__l" data-reveal>
-        <h3 class="display h3" style="max-width:20ch">Two separate leaks, two different fixes.</h3>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p><strong>Before the cart.</strong> Only 5.5% got that far. People could not find the right product fast
-        enough, and nothing told them why to trust the store with a card.</p>
-        <p><strong>After the cart.</strong> Half of everyone at checkout left. In equipment retail that is usually
-        shipping cost arriving as a surprise at the final step.</p>
-      </div>
-    </div>
-
-    <div style="margin-top:clamp(2.8rem,5.5vw,4.4rem)">
-      <p class="mono eyebrow" style="margin-bottom:1rem" data-reveal>The same funnel now</p>
-      {nowfunnel}
-      <p class="note" style="margin-top:1rem">5 October to 4 November 2026. The first leak narrowed a little.
-      <strong>The second one closed almost entirely:</strong> 93% of carts now reach checkout, against 52% in July.</p>
-    </div>
-  </div>
-</section>
-
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="wrap">
-    {shead("03", "The shipping fix",
-           ["Shipping stopped being", "a surprise at the end."],
-           "Two changes aimed squarely at the second leak.")}
-
-    <div class="split" style="margin-top:clamp(1.6rem,3vw,2.4rem)">
-      <div class="split__l prose" data-reveal>
-        <p>Shipping options were rebuilt around what customers actually buy. A rubber sheet and a full-size table
-        are not the same parcel and should never have been offered the same way.</p>
-        <p>Then the threshold was made visible. A <strong>free shipping progress bar</strong> sits in the side cart
-        and at checkout, counting in real money toward the $75 mark.</p>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>It does two jobs. Removes the late surprise that was killing checkouts, and gives a shopper a reason to
-        add one more item rather than leave. Both states below, from the live store.</p>
-      </div>
-    </div>
-
-    {shotgrid(
-      shot("tts-cart-partial.jpg", "Live store, side cart, not yet qualified. <b>&ldquo;You&rsquo;re $20.03 away from free shipping&rdquo;</b> — a part-filled bar and a specific number, shown while there is still time to act on it.", 1347, 633,
-           alt="The side cart on tabletennisstore.us showing a part-filled progress bar reading: you are $20.03 away from free shipping"),
-      shot("tts-cart-unlocked.jpg", "Live store, side cart, threshold cleared. <b>&ldquo;You&rsquo;ve unlocked FREE SHIPPING&rdquo;</b> — confirmed in the cart, long before checkout can take it back.", 1354, 675, url="tabletennisstore.us",
-           alt="The side cart on tabletennisstore.us showing a full progress bar reading: you have unlocked free shipping"),
-      cls="shotgrid--2")}
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    {shead("04", "The problem",
-           ["Nine things standing", "between a visitor", "and an order."],
-           "Everything below was documented before any design work started. The list is what the project was scoped against.")}
-    <div class="probs" data-stagger>{probs}</div>
-    <p class="note" style="margin-top:clamp(1.6rem,3vw,2.4rem)" data-reveal>The goal was to turn the store into a
-    structured, high-trust shopping experience while keeping the Shopify setup scalable and maintainable &mdash; so the
-    client could keep running it without me.</p>
-  </div>
-</section>
-
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="court" aria-hidden="true"></div>
-  <div class="wrap" style="position:relative;z-index:2">
-    {shead("05", "The solution",
-           ["What actually", "changed."],
-           "Three areas of work. Each addresses specific items on the problem list rather than a general sense that things could look better.")}
-    <div class="deck" data-stagger>{solcards}</div>
-
-    <div style="margin-top:clamp(2.8rem,5.5vw,4.4rem)">
-      <p class="mono eyebrow" data-reveal style="margin-bottom:1.4rem">The homepage, in sequence</p>
-      <h3 class="display h3" data-reveal style="max-width:24ch;margin-bottom:clamp(1.6rem,3vw,2.4rem)">Five sections, in the
-      order a visitor needs them.</h3>
-      {homeflow}
-      <p class="note" style="margin-top:1.6rem" data-reveal>Each section answers the question the previous one
-      raises. A visitor who lands cold learns what the store is, why to trust it, which brands it carries, what it
-      sells, and what is new &mdash; without having to search for any of it.</p>
-    </div>
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">My role</p>
-        <h2 class="display h3" style="margin-top:1.2rem;max-width:16ch">Design and implementation, both.</h2>
-        <p style="color:var(--fg-2);margin-top:1.2rem;max-width:34ch">I was not handing files to a developer.
-        The design decisions and the code that shipped them were the same job.</p>
-      </div>
-      <div class="split__r" data-reveal data-delay="120">
-        <ul class="slist" style="margin-top:0">{rolelist}</ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">What this means</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">The redesign did not just change how the site looks.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>It changed how quickly people find a product, how much they trust the store, and whether shipping
-        ambushes them at the last step. That is what a conversion rate is actually measuring.</p>
-        <p><strong>And it stayed a Shopify store the client can run and extend themselves.</strong></p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<a class="next" href="gewo-usa.html" data-cursor="Next case">
-  <div class="wrap">
-    <p class="mono mono--accent" data-reveal="fade">Next project &mdash; 02</p>
-    <h2 class="next__t" data-reveal style="margin-top:1rem">GEWO USA</h2>
-  </div>
-</a>
-
-{cta_block("Want this run on your store?",
-           "Send the URL and your current conversion rate. I will tell you where I think the orders are leaking before you pay me anything.")}
+{cta()}
 """
-    return page("table-tennis-usa.html", "Table Tennis USA — Case Study — AKINTAYO",
-                "Shopify UX and conversion work for Table Tennis USA (tabletennisstore.us). Completed orders went "
-                "from 234 in July 2026 to 615 in the thirty days to 4 November 2026, with every Shopify Analytics "
-                "screenshot attached and openable.",
-                "work.html", body, og_img="og-ttusa.jpg")
-
-
-# =============================================================== CASE: GEWO ==
-def build_gewo():
-    tree = [
-        ("Rackets", "3", ["Paddles <em>Shakehand</em>", "Blades <em>Shakehand, Chinese penhold</em>", "Combo specials"]),
-        ("Rubber", "4", ["Inverted", "Short pips", "Long pips", "Anti-spin"]),
-        ("Tables", "5", ["Indoor", "Outdoor", "Nets &amp; net sets", "Cleaner", "Accessories"]),
-        ("Ball", "5", ["Tournament", "Training", "Cases", "Collectors", "Collector nets"]),
-        ("Accessories", "6", ["Clothing", "Bags", "Shoes", "Racket care", "Rubber accessories", "Novelty"]),
-        ("Deals", "4", ["Bundles", "New arrivals", "On sale", "Clearance"]),
-    ]
-    branches = ""
-    for name, n, kids in tree:
-        li = "".join(f"<li>{k}</li>" for k in kids)
-        branches += f"""<div class="branch" data-reveal>
-  <h3 class="branch__h">{name}<span>{n} sub</span></h3>
-  <ul>{li}</ul>
-</div>"""
-
-    # Product counts as shown on the homepage collection tiles. Single series.
-    counts = [("Blades", 50), ("Rubber", 50), ("Shirts", 35), ("Paddles", 19),
-              ("Balls", 18), ("Combo specials", 17), ("Shoes", 7)]
-    hbars = ""
-    for i, (k, v) in enumerate(counts):
-        hbars += f"""<div class="hbar">
-  <span class="hbar__k">{k}</span>
-  <div class="hbar__track"><div class="hbar__fill" style="--w:{v/50*100:.0f}%;--d:{i*90}ms"></div></div>
-  <span class="hbar__v">{v}</span>
-</div>"""
-
-    beats = "".join([
-        beat("01", "A manufacturer&rsquo;s store has two jobs at once", [
-            "GEWO USA was established by Ben Nisbet with professional player Mishel Levinski, on the principle of "
-            "building equipment &ldquo;with the eyes of a player&rdquo;.",
-            "That changes the brief. A multi-brand retailer helps you choose <em>between</em> brands. A "
-            "manufacturer&rsquo;s store has to carry the brand itself and still work as a shop. Every layout "
-            "decision is a negotiation between those two jobs."]),
-        beat("02", "Navigation built on how equipment is classified", [
-            "Twenty-seven subcategories under six headings, following the sport&rsquo;s own taxonomy rather than a "
-            "generic shop template. A player who knows they want long pips reaches them in two moves.",
-            "The menu is doing the work a shop assistant would do, and it can only do that if whoever built it "
-            "understands the categories."]),
-        beat("03", "Four claims a reseller cannot make", [
-            "Pro tested, match-ready consistency, premium materials, precision engineered. Those are manufacturing "
-            "claims, and a reseller has no standing to make them.",
-            "Sitting them under the hero, before the catalogue, frames everything below as the manufacturer&rsquo;s "
-            "own equipment rather than another storefront selling the same boxes."]),
-        beat("04", "Combo specials, for the customer who does not know what to ask", [
-            "The hardest customer in table tennis retail is the one who cannot pair a blade with a rubber. "
-            "Pre-matched setups get their own navigation category, homepage section and tile, with the saving shown "
-            "as a percentage.",
-            "An intimidating configuration problem becomes one product decision, without hiding the components from "
-            "players who do want to choose."]),
-    ])
-
-    body = f"""
-<section class="case-hero">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>Case study 02 &mdash; Shopify ecommerce</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('GEWO <span class="accent">USA</span>', cls="display case-hero__title", onload=True)}
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>The US store of a table tennis equipment manufacturer,
-        carrying two jobs at once: be the brand, and be the shop. It loads its largest element in
-        <strong>1.2 seconds</strong> and moves nothing while it does. The store is live, so judge it there.</p>
-      </div>
-    </div>
-    {livebtn("https://www.gewousa.com/", "Open the live store")}
-    {meta_rail([
-        ("Client", "GEWO USA"),
-        ("Sector", "Manufacturer-owned ecommerce"),
-        ("Platform", "Shopify"),
-        ("Role", "Website design"),
-        ("Live site", '<a href="https://www.gewousa.com/" target="_blank" rel="noopener">gewousa.com &#8599;</a>'),
-        ("Measured", "Core Web Vitals, 30 days"),
-    ])}
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">The brief in one line</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">Make the brand and the catalogue stop fighting each other.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>The catalogue runs from shakehand and penhold blades through four categories of rubber, indoor and
-        outdoor tables, balls, apparel, footwear, and maintenance items down to edge tape and glue.</p>
-        <p>Those are not one kind of purchase. <strong>Apparel is browsed. Rubber is specified. A table is
-        researched. Edge tape is re-ordered.</strong> The store has to let all four happen without the brand story
-        blocking someone who came to buy glue.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    {shotgrid(
-      shot("gewo-home.jpg", "The homepage. Brand first, then the trust strip, then eight collection tiles — so a player who came to shop is two clicks from the right category.", 1365, 1180, url="gewousa.com", cls="shot--crop"),
-      shot("gewo-pdp.jpg", "A product page. Price, variant, stock count and both buy paths above the fold, with the full specification underneath for the players who read it.", 1366, 1180, url="gewousa.com/products", cls="shot--crop"),
-      cls="shotgrid--2")}
-    {shot("gewo-pdp-bands.jpg", "Below every product: <b>who it is for</b>, a four-point performance read, and endorsements from GEWO&rsquo;s own sponsored players. A reseller cannot publish any of this. The manufacturer can.", 1366, 1250, cls="shot--crop")}
-  </div>
-</section>
-
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="wrap" style="position:relative;z-index:2">
-    {shead("01", "Information architecture",
-           ["The menu is the", "shop assistant."],
-           "Six headings, twenty-seven subcategories, organised by how table tennis equipment is actually classified rather than how a generic store template wants to group it.")}
-    <div class="tree" data-stagger>{branches}</div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    {shead("02", "Catalogue depth",
-           ["What is actually", "behind each tile."],
-           "Product counts as shown on the homepage collection tiles. Publishing them tells a customer whether a category is worth opening.")}
-    <div class="hbars" data-reveal="fade" style="margin-top:clamp(1rem,2vw,1.6rem)">{hbars}</div>
-    <p class="note" style="margin-top:1.8rem" data-reveal>Blades and rubber carry the range; shoes and novelty
-    items do not. A store that hides those numbers sends a customer into an empty room and loses them there.</p>
-  </div>
-</section>
-
-<section class="results section">
-  <div class="wrap">
-    {shead("03", "Performance",
-           ["It is fast, and", "nothing jumps."],
-           "Core Web Vitals as Shopify recorded them over thirty days. These are the three measurements Google uses to judge whether a page is usable.")}
-
-    {shot("gewo-vitals.jpg", "Thirty days of real visitor data. <b>LCP 1201ms. INP 56ms. CLS 0.</b> All three rated Good.", 688, 76)}
-
-    <div class="statrow" style="margin-top:clamp(2.2rem,4.5vw,3.4rem)" data-stagger>
-      <div class="stat stat--hl" data-reveal>
-        <p class="stat__v">1.2s</p>
-        <p class="stat__l mono">Largest Contentful Paint. Google calls anything under 2.5s good, so this is less than half the limit</p>
-      </div>
-      <div class="stat" data-reveal>
-        <p class="stat__v">56ms</p>
-        <p class="stat__l mono">Interaction to Next Paint. The threshold is 200ms. This is roughly a quarter of it</p>
-      </div>
-      <div class="stat" data-reveal>
-        <p class="stat__v">0</p>
-        <p class="stat__l mono">Cumulative Layout Shift. Nothing on the page moves while it loads. Not low, zero</p>
-      </div>
-    </div>
-
-    <div class="split" style="margin-top:clamp(2.2rem,4.5vw,3.4rem)">
-      <div class="split__l" data-reveal>
-        <h3 class="display h3" style="max-width:20ch">Why a store owner should care about the third one.</h3>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>Layout shift is what happens when a page loads in pieces and the thing you were about to tap slides out
-        from under your thumb. On a phone it is the reason people tap the wrong button and leave.</p>
-        <p>A score of zero means it never happens here. That is not a design flourish, it is a checkout that does
-        not lose people for a stupid reason.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    <div class="rail">
-      <div class="rail__side" data-reveal="fade">
-        <p class="mono mono--accent">Design decisions</p>
-        <p class="mono" style="margin-top:.6rem">Four choices and the reasoning behind them</p>
-        <div class="facts" style="margin-top:2rem">
-          <div class="fact"><span class="mono">Store type</span><span class="fact__v">Manufacturer-owned</span></div>
-          <div class="fact"><span class="mono">Nav headings</span><span class="fact__v">6, nested</span></div>
-          <div class="fact"><span class="mono">Subcategories</span><span class="fact__v">27</span></div>
-          <div class="fact"><span class="mono">Products on tiles</span><span class="fact__v">196</span></div>
-          <div class="fact"><span class="mono">Sponsored players</span><span class="fact__v">6 featured</span></div>
-          <div class="fact"><span class="mono">Free shipping</span><span class="fact__v">Orders over $60</span></div>
-        </div>
-      </div>
-      <div class="rail__main">
-        {beats}
-        <div class="caveat" data-reveal>
-          <p class="mono mono--accent">What I am not claiming</p>
-          <p>The speed numbers above are real and measured. <strong>There is no conversion or revenue data I can
-          publish for this store</strong>, so none appears here. The conversion figures on this site belong to the
-          Table Tennis USA project and only to it.</p>
-          <p>What GEWO USA shows is a different problem solved: a brand-owned catalogue rather than a multi-brand
-          retailer, built fast. The store is live. Judge the execution there.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<a class="next" href="paul-david.html" data-cursor="Next case">
-  <div class="wrap">
-    <p class="mono mono--accent" data-reveal="fade">Next project &mdash; 03</p>
-    <h2 class="next__t" data-reveal style="margin-top:1rem">Paul David</h2>
-  </div>
-</a>
-
-{cta_block("Selling your own brand direct?",
-           "A manufacturer store has a different problem from a retailer. Tell me about your range and where customers get lost in it.")}
-"""
-    return page("gewo-usa.html", "GEWO USA — Case Study — AKINTAYO",
-                "Website design for GEWO USA, the US store of a table tennis equipment manufacturer — navigation "
-                "built on equipment taxonomy across 27 subcategories, trust claims only a manufacturer can make, "
-                "and combo specials for customers who don't yet know what to ask for.",
-                "work.html", body, og_img="og-gewo.jpg")
-
-
-# ========================================================= CASE: PAUL DAVID ==
-def build_paul():
-    services = [
-        ("In-Home Coaching", "60 min", "$150",
-         "One-on-one coaching at your location focused on technique, footwork, consistency, strategy and personalised skill development."),
-        ("Private Lessons", "60 min", "$150",
-         "Personalised private coaching focused on individual goals, for beginner, intermediate or competitive players."),
-        ("Group Lessons", "60 min", "$120",
-         "Structured group coaching for players who want to train together while improving technique and movement."),
-        ("Camp Clinic", "Full day", "$250",
-         "Intensive day-based training with drills, coaching, match play and skill-building activities."),
-    ]
-    srows = "".join(
-        f'<tr><td>{n}</td><td class="phase">{d}</td><td class="num hl">{p}</td><td>{desc}</td></tr>'
-        for n, d, p, desc in services)
-
-    bookflow = flow([
-        ("Lands on the site", "From a search, a flyer or another player&rsquo;s recommendation."),
-        ("Opens Services", "Four offers, each with duration and price stated."),
-        ("Picks one", "The choice is made before any contact happens."),
-        ("Book now", "Opens an email already addressed, with that service as the subject."),
-        ("Paul&rsquo;s inbox", "A coach who checks his email checks his bookings."),
-    ])
-
-    kitflow = flow([
-        ("&ldquo;What racket should I buy?&rdquo;", "Every coach is asked this, constantly."),
-        ("Recommended Equipment", "One page, three setups, tiered by level."),
-        ("Starter / Intermediate / Advanced", "GEWO CS Energy Control, CS Energy Carbon Pro, Xolo Offensive with Neoflexx."),
-        ("Code PDCGEWO", "12% off, so the recommendation is worth acting on."),
-        ("GEWO USA", "A properly stocked store &mdash; and another client of mine."),
-    ])
-
-    beats = "".join([
-        beat("01", "A coaching business is not a shop", [
-            "Paul David sells time: in-home coaching, private lessons, group lessons and camp clinics.",
-            "None of that belongs in a cart. He is paid at the table, so a checkout adds a step his business does "
-            "not have. Which makes the question a different one: <strong>how do you get someone from &lsquo;I want "
-            "lessons&rsquo; to a message in his inbox, in as few steps as possible?</strong>"]),
-        beat("02", "Four services, priced in the open", [
-            "Name, duration, price and who it is for, with travel fees noted. Coaches routinely hide pricing and "
-            "lose the enquiry to the uncertainty, because the visitor assumes it is expensive.",
-            "Publishing it filters out the people who were never going to book and gives everyone else a reason to "
-            "act now."]),
-        beat("03", "One booking action per service", [
-            "Each service has its own <em>Book now</em> button opening a pre-addressed email, with the service "
-            "already in the subject line.",
-            "No form to build or maintain, no submissions lost in a plugin, and no ambiguity at Paul&rsquo;s end "
-            "about which service the enquiry is for."]),
-        beat("04", "The equipment page, which is really a partner path", [
-            "Rather than run a shop himself, Paul has a <em>Recommended Equipment</em> page "
-            "naming three GEWO setups by level, blade and rubber specified.",
-            "Each links to GEWO USA, a properly stocked store I had already worked on, and carries his own code, "
-            "PDCGEWO, for 12% off. <strong>The student gets a straight answer and a discount; the coach gets a "
-            "credible recommendation and zero inventory.</strong>"]),
-        beat("05", "Built to be handed over", [
-            "The unglamorous half: services Paul can edit himself, payment matched to how he actually gets paid, "
-            "domain connected, ownership transferred.",
-            "A site the client cannot change goes stale within a year."]),
-    ])
-
-    body = f"""
-<section class="case-hero">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>Case study 03 &mdash; Coaching practice</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('Paul <span class="accent">David</span>', cls="display case-hero__title", onload=True)}
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>A coach with four services to sell and no cart to sell
-        them in. Turn coaching hours into enquiries, connect students to equipment without making him a retailer,
-        and leave the whole thing in his hands.</p>
-      </div>
-    </div>
-    {livebtn("https://pauldavidcoach.com/", "Open the live site")}
-    {meta_rail([
-        ("Client", "Paul David"),
-        ("Sector", "Table tennis coaching"),
-        ("Model", "Booked online, paid in person"),
-        ("Role", "Full site build, launch &amp; handover"),
-        ("Live site", '<a href="https://pauldavidcoach.com/" target="_blank" rel="noopener">pauldavidcoach.com &#8599;</a>'),
-        ("Published data", "None &mdash; see note"),
-    ])}
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    <p class="mono eyebrow" data-reveal="fade">What is being sold</p>
-    <h2 class="display h3" data-reveal style="margin-top:1.2rem;max-width:20ch">Four services, each with its own booking path.</h2>
-    <div class="dtable-wrap" style="margin-top:clamp(1.8rem,3.4vw,2.6rem)" data-reveal>
-      <table class="dtable">
-        <thead><tr><th>Service</th><th>Duration</th><th class="num">Price</th><th>Who it is for</th></tr></thead>
-        <tbody>{srows}</tbody>
-      </table>
-    </div>
-    <p class="note" style="margin-top:1.4rem" data-reveal>Travel fees are stated on the page rather than raised
-    after someone has committed.</p>
-  </div>
-</section>
-
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="court" aria-hidden="true"></div>
-  <div class="wrap" style="position:relative;z-index:2">
-    {shead("01", "The booking path",
-           ["Five steps, no form,", "no checkout."],
-           "The whole problem is the distance between wanting a lesson and the coach knowing about it.")}
-    {bookflow}
-    <p class="note" style="margin-top:1.8rem" data-reveal>A contact form would add two steps, a plugin to maintain,
-    and a place for enquiries to go missing. The email opens already knowing which service was chosen.</p>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    {shead("02", "The equipment path",
-           ["Answering the", "question every coach", "gets asked."],
-           "A coach who says &lsquo;buy whatever&rsquo; loses authority. A coach who runs a shop loses time. This is the third option.")}
-    {kitflow}
-    <p class="note" style="margin-top:1.8rem" data-reveal>The student gets a specific answer and a reason to act.
-    The coach carries no stock, no shipping, no returns. Two of my clients worth more to each other than alone.</p>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    <div class="rail">
-      <div class="rail__side" data-reveal="fade">
-        <p class="mono mono--accent">Design decisions</p>
-        <p class="mono" style="margin-top:.6rem">Five choices, and why</p>
-        <div class="facts" style="margin-top:2rem">
-          <div class="fact"><span class="mono">Services</span><span class="fact__v">4, individually priced</span></div>
-          <div class="fact"><span class="mono">Payments</span><span class="fact__v">In person, by design</span></div>
-          <div class="fact"><span class="mono">Booking</span><span class="fact__v">Pre-addressed email, per service</span></div>
-          <div class="fact"><span class="mono">Equipment</span><span class="fact__v">3 setups, tiered by level</span></div>
-          <div class="fact"><span class="mono">Partner code</span><span class="fact__v">12% off at GEWO USA</span></div>
-          <div class="fact"><span class="mono">Handover</span><span class="fact__v">Domain &amp; ownership transferred</span></div>
-        </div>
-      </div>
-      <div class="rail__main">
-        {beats}
-        <div class="caveat" data-reveal>
-          <p class="mono mono--accent">What I am not claiming</p>
-          <p>No booking or revenue figures are published for this project, so none appear here. What it shows is
-          that the same thinking works away from ecommerce: understand how the business actually takes money,
-          then build the shortest honest path to it &mdash; and notice where two clients can be worth more to each
-          other than either is alone. The site is live; judge the execution there.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<a class="next" href="table-tennis-usa.html" data-cursor="Back to 01">
-  <div class="wrap">
-    <p class="mono mono--accent" data-reveal="fade">Back to the flagship &mdash; 01</p>
-    <h2 class="next__t" data-reveal style="margin-top:1rem">Table Tennis USA</h2>
-  </div>
-</a>
-
-{cta_block("Coach, club or academy?",
-           "You do not need a shop. You need the shortest possible path between someone deciding to train and you hearing about it.")}
-"""
-    return page("paul-david.html", "Paul David — Case Study — AKINTAYO",
-                "Website build for table tennis coach Paul David: four services priced in the open, a five-step "
-                "booking path with no form or checkout, and an equipment page that partners students to GEWO USA.",
-                "work.html", body, og_img="og-paul.jpg")
+    return page("sports.html", "Sports — Akintayo",
+                "Websites for table tennis, football, cricket, volleyball, field hockey and ice "
+                "hockey — clubs, academies, brands, stores, coaches and leagues.",
+                "sports.html", body)
 
 
 # ================================================================= SERVICES ==
+SERVICES = [
+  ("01", "Website design from scratch",
+   "New clubs and academies, coaches, event organisers, distributors and brands launching direct.",
+   ["Page structure", "Visual design and design system", "Full build and launch",
+    "Mobile and performance", "Domain and DNS setup, handover"]),
+  ("02", "Ecommerce website design",
+   "Equipment brands, sports retailers, manufacturer-owned stores, distributors and clubs with a pro shop.",
+   ["Catalogue and collection structure", "Product pages built for specs and sizes",
+    "Filtering and search", "Cart and checkout flow", "Shopify and Liquid customisation"]),
+  ("03", "Website redesign",
+   "Sites that outgrew their design, teams after a rebrand, and sites whose builder is gone.",
+   ["Audit of what works and what doesn&rsquo;t", "Redesign around your audience&rsquo;s path",
+    "URL and content preserved", "Safe migration, no lost product data",
+    "Before-and-after measurement"]),
+  ("04", "Conversion optimisation",
+   "Sports businesses with real traffic and a sign-up or sales rate that has stalled.",
+   ["Journey mapping: browse &rarr; buy, book or join", "Product and collection page work",
+    "Cart and checkout friction removed", "Trust, shipping and returns clarity",
+    "Analytics and monthly reporting"]),
+]
+
 def build_services():
-    svcs = [
-        ("01", "Website design from scratch",
-         "For a business with no website, or one whose site was never really designed. A placeholder, an unfinished "
-         "template, a page that exists only because something had to.",
-         "Brands launching direct, new clubs and academies, coaches, event organisers, distributors.",
-         ["Structure and page architecture", "Visual design and design system",
-          "Full build and launch", "Mobile and performance work",
-          "Domain and DNS setup", "Handover so you can run it"]),
-        ("02", "Ecommerce website design",
-         "The catalogue is the site: how it is organised, how a customer narrows it down, and what a product page "
-         "has to prove before someone buys a blade they cannot hold.",
-         "Equipment brands, retailers, manufacturer-owned stores, distributors, clubs running a pro shop.",
-         ["Catalogue and collection architecture", "Product page design for specifications",
-          "Filtering and search behaviour", "Cart and checkout flow",
-          "Shopify theme customisation and Liquid", "Shipping, currency and region handling"]),
-        ("03", "Website redesign",
-         "For a site that works but holds the business back. A redesign has to move things forward without throwing "
-         "away what already earns: rankings, product data, URLs, and customer habits.",
-         "Stores that outgrew their design, brands after a rebrand, sites built by someone no longer available.",
-         ["Audit of the existing site", "Redesign against the current buying path",
-          "URL and content preservation", "Migration without losing product data",
-          "Before-and-after measurement", "Staged launch"]),
-        ("04", "Conversion-focused optimisation",
-         "For a site with traffic that does not turn into orders. Not a redesign. Work on the specific points where "
-         "people leave, then measurement.",
-         "Any table tennis business with real traffic and a conversion rate that has stopped moving.",
-         ["Buying-path mapping, end to end", "Product and collection page work",
-          "Cart and checkout friction removal", "Trust, shipping and returns clarity",
-          "Analytics and conversion tracking", "Month-over-month reporting"]),
-    ]
-    blocks = ""
-    for n, t, what, who, items in svcs:
-        li = "".join(f"<li>{i}</li>" for i in items)
-        blocks += f"""<div class="svc" data-reveal>
-  <p class="svc__no mono">{n}</p>
-  <div class="svc__head">
-    <h2 class="svc__t">{t}</h2>
-    <p class="svc__for mono">Who it is for</p>
-    <p style="color:var(--fg-2);max-width:34ch;margin-top:.5rem">{who}</p>
-  </div>
-  <div class="svc__body"><p style="color:var(--fg-2)">{what}</p></div>
-  <ul class="svc__list">{li}</ul>
+    rows = ""
+    for n, title, who, items in SERVICES:
+        lis = "".join(f"<li>{x}</li>" for x in items)
+        rows += f"""<div class="srv" data-reveal>
+  <div><p class="srv__n">{n}</p><h2 class="tm">{title}</h2></div>
+  <div><p class="label">For</p><p class="srv__for" style="margin-top:.8rem">{who}</p></div>
+  <ul>{lis}</ul>
 </div>"""
 
+    steps = [("1", "Learn your game", "Your sport, your audience, your catalogue or class list."),
+             ("2", "Map the journey", "How a visitor goes from landing to buying, booking or joining."),
+             ("3", "Design and build", "Pages designed and coded by the same person."),
+             ("4", "Measure and refine", "Real numbers, reported month over month.")]
+    stepsh = "".join(f'<div class="step" data-reveal><p class="step__n">{n}</p>'
+                     f'<h3 class="step__t">{t}</h3><p class="step__d">{d}</p></div>'
+                     for n, t, d in steps)
+
+    incl = ["Mobile-ready", "Fast loading", "SEO structure",
+            "Analytics and conversion tracking", "Meta Business integration", "You stay in control"]
+    inclh = "".join(f'<div class="scol" data-reveal style="padding-top:1rem">'
+                    f'<p style="font-weight:500">{x}</p></div>' for x in incl)
+
     body = f"""
-<section class="hero" style="padding-bottom:clamp(1.6rem,3vw,2.6rem)">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>Services &mdash; four, and only four</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('What I build,', 'and who it is for.', onload=True)}
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>Four services. Most projects are one of them. Some run
-        two together.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section section--tight">
+<section class="sect sect--tight">
   <div class="wrap">
-    <div style="border-top:1px solid var(--line)" data-stagger>{blocks}</div>
+    <p class="label" data-reveal>( Services ) &mdash; Four, and only four</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem">WHAT I<br><em class="it">do.</em></h1>
+    <p class="lead body" data-reveal style="margin-top:1.8rem;max-width:50ch">Four focused services, each shaped around how a club, coach, brand or store really earns &mdash; signing up players, selling gear, filling classes.</p>
   </div>
 </section>
 
-<section class="section">
+<section class="sect" style="padding-top:0"><div class="wrap">{rows}</div></section>
+
+<section class="sect moon">
   <div class="wrap">
-    {shead("&mdash;", "Process",
-           ["The same four stages,", "every time."],
-           "Nothing is designed before the catalogue and the buying path are understood. Getting that order wrong is what produces a beautiful site that does not sell.")}
-    <div class="steps" data-stagger>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">01</p><h3 class="step__t">Learn the catalogue</h3><p class="step__d">What you sell, how it is organised, and where the money actually comes from.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">02</p><h3 class="step__t">Map the buying path</h3><p class="step__d">Arrival to completed order, written out, with the stalling points marked.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">03</p><h3 class="step__t">Design and build</h3><p class="step__d">Design that follows the map, then a working site, tested on real devices.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">04</p><h3 class="step__t">Measure and refine</h3><p class="step__d">Changes made on the evidence rather than on preference.</p></div>
-    </div>
+    <p class="label" data-reveal>How it works</p>
+    <h2 class="tl" data-reveal style="margin-top:1.2rem;margin-bottom:clamp(2.4rem,5vw,4rem)">FOUR <em class="it">steps.</em></h2>
+    <div class="steps">{stepsh}</div>
   </div>
 </section>
 
-<section class="section section--tight">
+<section class="sect sect--tight">
   <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">Not sure which one</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">Describe the problem. I will tell you which of these it is.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>Plenty of businesses ask for a redesign when the real problem is three product pages and a checkout
-        step. Others ask for conversion work when the site underneath cannot support it. Worth knowing which one
-        you have before anyone quotes you.</p>
-        <p>Send the URL and a sentence about what is not working. <strong>If the answer is that you do not need me
-        yet, I will say that.</strong></p>
-      </div>
-    </div>
+    <p class="label" data-reveal style="margin-bottom:1.6rem">Every site includes</p>
+    <div class="grid g-3">{inclh}</div>
   </div>
 </section>
 
-{cta_block("Start with the problem, not the brief.",
-           "Send your site and what is going wrong with it. The right service usually becomes obvious in one email.")}
+{cta()}
 """
-    return page("services.html", "Services — AKINTAYO",
-                "Website design from scratch, ecommerce design, website redesign and conversion-focused "
-                "optimisation for table tennis brands, stores, clubs and coaches.",
+    return page("services.html", "Services — Akintayo",
+                "Website design from scratch, ecommerce design, website redesign and conversion "
+                "optimisation for sports clubs, academies, brands and stores.",
                 "services.html", body)
 
 
 # ==================================================================== ABOUT ==
 def build_about():
-    principles = [
-        ("Proof over adjectives",
-         "Numbers where numbers exist. That rule is why the Table Tennis USA decline sits on this site beside the recovery."),
-        ("The catalogue comes first",
-         "Decisions made before anyone understands the products are guesses, and in this sport the guesses are usually wrong."),
-        ("Build it, do not just draw it",
-         "I hand over working websites, not concept files for someone else to interpret and dilute."),
-        ("Leave the client in control",
-         "Ownership transferred, domain connected, structure editable. A site the owner cannot change goes stale."),
-    ]
-    cards = "".join(f"""<article class="card" style="grid-column:span 6" data-reveal>
-  <p class="card__no mono">{i+1:02d}</p>
-  <h3 class="h4">{t}</h3>
-  <p class="card__body">{d}</p>
-</article>""" for i, (t, d) in enumerate(principles))
-
-    human = [
-        ("Home", "Osun State, Nigeria",
-         "Born and based here. My clients are not, so everything runs on email and shipped work, which is why this site leads with evidence instead of a promise."),
-        ("Study", "Doctor of Pharmacy",
-         "A PharmD candidate at Obafemi Awolowo University. Pharmacy is a degree in reading technical specifications carefully and getting the details exactly right."),
-        ("Chess", "A serious habit",
-         "Not a titled player, a serious one. Chess is pattern recognition and thinking several moves past the obvious, under time pressure."),
-        ("Gadgets", "Phones, laptops, cameras",
-         "The real obsession. Caring how an object feels in the hand is not unrelated to caring how an interface feels under a thumb."),
-        ("Off the desk", "Books, restaurants, a map",
-         "I read constantly, I will try any restaurant once, and the long plan is to see as much of the world as I can manage."),
-    ]
-    hcards = "".join(f"""<article class="hcard" data-reveal>
-  <p class="mono mono--accent">{k}</p>
-  <h3 class="h4">{t}</h3>
-  <p>{d}</p>
-</article>""" for k, t, d in human)
-
-    stack = ["Shopify", "Liquid templating", "Theme customisation", "Custom CSS",
-             "HTML &amp; JavaScript", "Responsive &amp; mobile", "Conversion rate optimisation",
-             "Ecommerce UX", "SEO structure", "Domain &amp; DNS setup",
-             "Meta Business integration", "Analytics &amp; conversion tracking"]
-    pills = "".join(f'<span class="pill">{s}</span>' for s in stack)
+    how = [("Proof over adjectives", "Real numbers from real stores, not vague promises."),
+           ("Audience first", "Players, parents and fans come before decoration."),
+           ("Build it, don&rsquo;t just draw it", "Every design ships as working, fast code."),
+           ("You stay in control", "A clean handover &mdash; your site, your keys.")]
+    howh = "".join(f'<div class="scol" data-reveal><h3 class="scol__t">{t}</h3>'
+                   f'<p class="scol__d">{d}</p></div>' for t, d in how)
+    tools = ["Shopify &amp; Liquid", "Ecommerce UX &amp; CRO", "SEO structure",
+             "Custom CSS &amp; JavaScript", "Analytics &amp; tracking", "Meta Business"]
+    toolsh = "".join(f'<span class="chip chip--out">{t}</span>' for t in tools)
 
     body = f"""
-<section class="hero" style="padding-bottom:clamp(1.6rem,3vw,2.6rem)">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>About &mdash; Akingbehin Akintayo</p>
-    <div class="intro-grid" style="margin-top:clamp(1.6rem,3.4vw,2.6rem)">
-      <div class="intro-grid__text">
-        {lines('A designer who', 'picked <span class="ital accent">one</span> sport', 'on purpose.', cls="display h2", onload=True)}
-        <div class="prose" style="margin-top:clamp(1.2rem,2.4vw,1.8rem)">
-          <p class="lead" data-reveal data-onload>I am an ecommerce web designer in Osun State, Nigeria, and I work
-          with table tennis businesses internationally. Stores, academies, coaches.</p>
-          <p data-reveal data-onload data-delay="90">Three of them are documented on this site, with the analytics
-          screenshots attached rather than described.</p>
+<section class="sect sect--tight">
+  <div class="wrap">
+    <p class="label" data-reveal>( About ) &mdash; A designer who picked sport on purpose</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem">HI, I&rsquo;M<br><em class="it">Akintayo.</em></h1>
+  </div>
+</section>
+
+<section class="sect" style="padding-top:0">
+  <div class="wrap">
+    <div class="split">
+      <div data-reveal style="position:relative">
+        <div style="overflow:hidden;aspect-ratio:5/7;background:var(--porcelain)">
+          <!-- scaled from the bottom-right so the photographer's watermark in the
+               top-left corner falls outside the frame -->
+          {img("akintayo-seated.jpg","Akingbehin Akintayo",1200,1800,style="width:100%;height:100%;object-fit:cover;object-position:100% 100%;transform:scale(1.14);transform-origin:100% 100%")}
+        </div>
+        <div style="background:var(--pear);padding:14px 18px;display:inline-block;margin-top:-62px;position:relative;z-index:2">
+          <p class="label" style="color:var(--royal)">Web designer &amp; developer</p>
+          <p style="font-weight:800;text-transform:uppercase;letter-spacing:-.02em;margin-top:.3rem">Akingbehin Akintayo</p>
         </div>
       </div>
-      {cutout("akintayo-cutout.webp", "akintayo-cutout.png", "Akingbehin Akintayo", 1100, 1545)}
-    </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">Why this niche</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">Specialists get to skip the first month of every project.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>Most web designers take whatever comes in. A dentist, a law firm, a gym. Reasonable living, one
-        structural cost: every project starts with the designer learning a market from zero, on your money.</p>
-        <p>Going narrow removes that cost. Table tennis has real money in it, manufacturers through to coaches, and very
-        little of it is served by anyone who understands both the equipment and how a store actually converts.</p>
+      <div>
+        <p class="lead" data-reveal style="font-size:clamp(1.2rem,2.1vw,1.875rem);line-height:1.35">I&rsquo;m a web designer and developer from Osun State, Nigeria, building websites for sports businesses around the world.</p>
+        <div class="body" data-reveal style="margin-top:2rem;display:grid;gap:1.2rem;max-width:58ch">
+          <p>I started in table tennis &mdash; stores, clubs and coaches &mdash; and learned how players actually choose a blade, a class or a coach. Now I bring that same care to football, cricket, volleyball and hockey.</p>
+          <p>When you work with me you work with one person: I read your email, go through your site, design the pages and write the code. No account managers, no hand-offs.</p>
+        </div>
+        <hr class="rule" style="margin:2.4rem 0 1.6rem">
+        <p class="label" data-reveal>Off the clock</p>
+        <p class="body" data-reveal style="margin-top:1rem;max-width:58ch">I&rsquo;m a Doctor of Pharmacy candidate at Obafemi Awolowo University. I play chess, collect gadgets and enjoy books, restaurants and travel. Beyond sport, I&rsquo;ve also built the Shopify store for ORIMI, a fine jewellery house shipping to more than 25 countries.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="court" aria-hidden="true"></div>
-  <div class="wrap" style="position:relative;z-index:2">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">Beyond table tennis</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">Table tennis is the specialism, not the extent of the experience.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>The most recent work outside the sport is <strong>ORIMI</strong>, a fine jewellery house selling
-        made-to-order pieces in solid 18K gold, built on Shopify and shipping to more than twenty-five countries.</p>
-        <p>A five-figure ring and a $40 rubber sheet are not the same sale, but they are the same discipline. Make the
-        thing legible, make it trustworthy, get out of the way at the moment someone decides to buy.</p>
-        <p><a class="tlink" href="https://orimijewelry.com/" target="_blank" rel="noopener">orimijewelry.com &#8599;</a></p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section">
+<section class="sect sect--tight">
   <div class="wrap">
-    {shead("&mdash;", "How I work", ["Four things I do not", "compromise on."])}
-    <div class="deck" data-stagger>{cards}</div>
+    <p class="label" data-reveal style="margin-bottom:2rem">How I work</p>
+    <div class="grid g-2">{howh}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:clamp(2.4rem,5vw,3.6rem)" data-reveal>{toolsh}</div>
   </div>
 </section>
 
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">Working in</p>
-        <h2 class="display h3" style="margin-top:1.2rem;max-width:14ch">What I build with.</h2>
-      </div>
-      <div class="split__r" data-reveal data-delay="120">
-        <div class="stack">{pills}</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    {shead("&mdash;", "Off the clock", ["The rest of it."],
-           "You are hiring a person, not a studio. Reasonable to want to know who that is before sending money across an ocean.")}
-    <div class="human" data-stagger>{hcards}</div>
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">Working with me</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">One person, start to finish.</h2>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>No account manager between you and the person doing the work, and nothing handed to a junior after the
-        pitch. You email me, I answer, I build it.</p>
-        <p><strong>I am hungry, and I would rather say so than pretend otherwise.</strong> Your result becomes my
-        portfolio, so I will go a long way to make it work. That is also the limit: I take few projects, and if the
-        timing is wrong I will say so.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-{cta_block("Working in table tennis? Let&rsquo;s talk.",
-           "One email with your site and the problem is enough to start.")}
+{cta()}
 """
-    return page("about.html", "About — AKINTAYO",
-                "Akingbehin Akintayo (AKINTAYO) — ecommerce web designer in Osun State, Nigeria, specialising in "
-                "the table tennis industry, with wider ecommerce work including the ORIMI fine jewellery store.",
-                "about.html", body)
+    return page("about.html", "About — Akintayo",
+                "Akingbehin Akintayo, a web designer and developer in Osun State, Nigeria, "
+                "building websites for sports clubs, academies, brands and stores worldwide.",
+                "about.html", body, og="akintayo-seated.jpg")
 
 
 # ================================================================== CONTACT ==
 def build_contact():
-    include = [
-        "Your website address, if you have one.",
-        "What kind of table tennis business you run &mdash; brand, store, distributor, club, academy, coach, event.",
-        "What is not working, in your own words. &ldquo;Traffic but no orders&rdquo; is a perfectly good brief.",
-        "Roughly when you want it live, and whether there is a budget range in mind.",
-    ]
-    li = "".join(f"<li>{i}</li>" for i in include)
-
+    steps = [("01", "You email", "A few lines about your site and the problem."),
+             ("02", "I look properly", "I go through your site before I reply."),
+             ("03", "Scope and price", "In writing, with no surprises.")]
+    stepsh = "".join(f'<div class="step" data-reveal><p class="step__n">{n}</p>'
+                     f'<h3 class="step__t">{t}</h3><p class="step__d">{d}</p></div>'
+                     for n, t, d in steps)
     body = f"""
-<section class="hero" style="padding-bottom:clamp(1.6rem,3vw,2.6rem)">
-  <div class="aura" aria-hidden="true"></div>
-  {ARC}
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>Contact &mdash; email only</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('Tell me about', 'the site and', 'the problem.', onload=True)}
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>No forms, no calls to book, no chat widget. Email keeps
-        the first conversation in writing, and gets you a considered answer rather than a scheduling link.</p>
-      </div>
-    </div>
-    <div style="margin-top:clamp(2.4rem,5vw,4rem)" data-reveal data-onload>
-      <a class="cta__mail" href="{mail()}">{EMAIL}</a>
-    </div>
-  </div>
-</section>
-
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
+<section class="sect sect--tight">
   <div class="wrap">
-    <div class="contact-person">
-      <div class="contact-person__body">
-        <p class="mono eyebrow" data-reveal="fade">Who answers</p>
-        <h2 class="display h2" data-reveal style="margin-top:1.2rem;max-width:14ch">Let&rsquo;s build something that works.</h2>
-        <div class="prose" data-reveal data-delay="120" style="margin-top:1.4rem">
-          <p>Every email reaches me and I answer it myself. No assistant screening
-          enquiries, no discovery call before anyone has looked at your site, and no proposal written by
-          someone who has never opened it.</p>
-          <p>Tell me what you sell and what is going wrong with it. <strong>If I am not the right person for
-          the job, I will say so rather than quote you.</strong></p>
-        </div>
-        <div style="margin-top:clamp(1.6rem,3vw,2.2rem)" data-reveal data-delay="180">
-          <a class="btn btn--primary" href="{mail()}" data-magnet="0.22"><span>Email me directly</span>{ARROW}</a>
-        </div>
-      </div>
-      <div class="contact-person__media">
-        {portrait("akintayo-seated.jpg",
-                  "Akingbehin Akintayo, the designer who will work on your project directly",
-                  tag="Replies come from me")}
-      </div>
-    </div>
+    <p class="label" data-reveal>( Contact ) &mdash; Email only, no forms to lose</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem">LET&rsquo;S<br><em class="it">connect.</em></h1>
   </div>
 </section>
 
-<section class="section">
+<section class="sect" style="padding-top:0">
   <div class="wrap">
-    <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">Make the first email a good one</p>
-        <h2 class="display h3" style="margin-top:1.2rem;max-width:16ch">What to include.</h2>
-        <p style="color:var(--fg-2);margin-top:1.2rem;max-width:32ch">None of this is required. It just means the first
-        reply can be useful instead of a list of questions.</p>
+    <div class="split" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+      <div data-reveal>
+        <p class="lead">Tell me about your team, club or store and what isn&rsquo;t working. I&rsquo;ll look properly and reply with scope and price in writing.</p>
+        <dl class="dl" style="margin-top:clamp(2rem,4vw,3.4rem)">
+          <dt>Email</dt><dd><a href="{mail()}" style="text-decoration:none;border-bottom:1px solid var(--line)">{EMAIL}</a></dd>
+          <dt>Based in</dt><dd>Osun State, Nigeria<br>Working worldwide</dd>
+          <dt>Local time</dt><dd data-clock>03:16 AM GMT+1</dd>
+        </dl>
       </div>
-      <div class="split__r" data-reveal data-delay="120">
-        <ul class="checklist">{li}</ul>
-        <div style="margin-top:2rem">
-          <a class="btn btn--primary" data-magnet="0.22" href="{mail('Website project enquiry', 'My website: %0D%0AMy business: %0D%0AWhat is not working: %0D%0ATimeline: %0D%0A')}">
-            <span>Open a pre-filled email</span>{ARROW}</a>
-        </div>
+      <div class="fcard" data-reveal>
+        <p class="label">Start a project &mdash; opens an email</p>
+        <form id="projectForm" action="{mail()}" method="get" style="margin-top:1.8rem">
+          <label for="f-site">My website</label>
+          <input id="f-site" name="site" type="text" placeholder="https://" autocomplete="url">
+          <label for="f-biz">My sport and business</label>
+          <input id="f-biz" name="biz" type="text" placeholder="Club, academy, brand or store">
+          <label for="f-prob">What is not working</label>
+          <textarea id="f-prob" name="problem" rows="3" placeholder="Tell me about the problem..."></textarea>
+          <label for="f-when">Timeline</label>
+          <input id="f-when" name="when" type="text" placeholder="When would you like to launch?">
+          <button class="btn" type="submit"><span>Send email</span>{ARROW}</button>
+          <p class="fcard__note">This opens your email app.</p>
+        </form>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section section--tight" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="wrap">
-    {shead("&mdash;", "What happens next",
-           ["Three replies, then", "a decision."],
-           "No discovery calls, no proposal decks that take a fortnight.")}
-    <div class="steps" data-stagger>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">01</p><h3 class="step__t">You email</h3><p class="step__d">Your site, your business and what is going wrong with it. A few sentences is enough.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">02</p><h3 class="step__t">I look properly</h3><p class="step__d">I go through the site before replying and tell you what the actual problem is, including when it is not one I should be paid to fix.</p></div>
-      <div class="step" data-reveal><p class="step__no mono mono--accent">03</p><h3 class="step__t">Scope and price</h3><p class="step__d">If it is a fit, you get the scope, what it costs and what you will have at the end, in writing.</p></div>
-    </div>
-  </div>
+<section class="sect sect--tight">
+  <div class="wrap"><div class="steps" style="grid-template-columns:repeat(3,minmax(0,1fr))">{stepsh}</div></div>
 </section>
-
-{cta_block("One email is enough to start.",
-           "Brands, stores, distributors, clubs, academies, coaches and event organisers in table tennis.",
-           "I read and reply to every email myself.")}
 """
-    return page("contact.html", "Contact — AKINTAYO",
-                "Email AKINTAYO about a table tennis website project: " + EMAIL,
+    return page("contact.html", "Contact — Akintayo",
+                "Email Akintayo about your sports website. No forms to lose, no calls to book — "
+                "one email and a reply with scope and price in writing.",
                 "contact.html", body)
 
 
-# ====================================================================== 404 ==
-def build_404():
-    body = f"""
-<section class="hero" style="min-height:62vh">
-  <div class="aura" aria-hidden="true"></div>
-  {ARC}
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-onload>Error 404</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      {lines('That ball went', 'off the table.', onload=True)}
-    </div>
-    <p class="lead lead--wide" data-onload style="margin-top:2rem">The page you were looking for is not here.</p>
-    <div class="hero__actions" style="margin-top:2.4rem;justify-content:flex-start" data-onload>
-      <a class="btn btn--ghost" href="./" data-magnet="0.22"><span>Home</span>{ARROW}</a>
-      <a class="btn btn--primary" href="work.html" data-magnet="0.22"><span>See the work</span>{ARROW}</a>
+# ---------------------------------------------------------- case templates
+def case_head(label, title_html, meta, hero_html):
+    return f"""
+<section class="sect sect--tight">
+  <div class="wrap">
+    <p class="label" data-reveal>{label}</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem;font-size:clamp(2.9rem,8.6vw,7.75rem)">{title_html}</h1>
+    {meta_row(meta)}
+    <div class="casehero" data-reveal>{hero_html}</div>
+  </div>
+</section>"""
+
+def next_project(title_html, href, label="Next project", cta_label="View case"):
+    return f"""
+<section class="sect sect--tight">
+  <div class="wrap">
+    <p class="label" data-reveal>{label}</p>
+    <div class="nextp" data-reveal style="margin-top:1rem">
+      <h2>{title_html}</h2>
+      {btn(cta_label, href, "primary")}
     </div>
   </div>
-</section>
-"""
-    return page("404.html", "Page not found — AKINTAYO",
-                "That page does not exist.", "index.html", body)
+</section>"""
 
 
-# ==================================================================== EXTRAS ==
-def build_proof():
-    """A plain, checkable summary of where every figure on this site came from.
-    No dollar amounts, no customer data, no admin URL — those are the client's,
-    not mine. The point is that a visitor can audit the claims without asking."""
+# ================================================= CASE: FREMONT (new page) ==
+def build_fremont():
+    feats = [("01", "Find a class, fast", "Clear paths for kids, adults, camps and private lessons."),
+             ("02", "Camps up front", "Camp registration promoted at the top of every page."),
+             ("03", "One tap to act", "Call, text and register buttons always within reach.")]
+    featsh = "".join(f'<div class="scol" data-reveal><p class="scol__n">{n}</p>'
+                     f'<h3 class="scol__t">{t}</h3><p class="scol__d">{d}</p></div>'
+                     for n, t, d in feats)
 
-    rows = [
-        ("1&ndash;31 Jul 2026",      "16,349", "899",   "466",   "234", "1.43%"),
-        ("1&ndash;31 Aug 2026",      "43,520", "1,076", "608",   "296", "0.68%"),
-        ("1&ndash;30 Sep 2026",      "18,037", "1,084", "719",   "353", "1.95%"),
-        ("5 Oct&ndash;4 Nov 2026",   "15,516", "1,194", "1,113", "615", "3.96%"),
-    ]
-    trows = "".join(
-        f'<tr><td>{a}</td><td class="num">{b}</td><td class="num">{c}</td>'
-        f'<td class="num">{d}</td><td class="num hl">{e}</td><td class="num">{f}</td></tr>'
-        for a, b, c, d, e, f in rows)
-
-    body = f"""
-<section class="hero" style="padding-bottom:clamp(1.4rem,3vw,2.2rem)">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>Proof log</p>
-    <div style="margin-top:clamp(1.2rem,2.6vw,2rem)">
-      {lines('Where every number', 'on this site', 'came from.', cls="display h2", onload=True)}
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead" data-reveal data-onload>Every figure traces to a dated screenshot of the client&rsquo;s own
-        Shopify Analytics. Nothing here is estimated, rounded up or recalled from memory.</p>
+    body = case_head(
+        "( Case study 01 ) &mdash; Table tennis &middot; Top project",
+        'FREMONT TABLE TENNIS <em class="it">Academy.</em>',
+        [("Client", "Fremont Table Tennis Academy"),
+         ("Location", "Fremont &amp; San Ramon, CA"),
+         ("Role", "UX &amp; UI redesign, build"),
+         ("Live site", '<a href="https://fremonttabletennis.com" target="_blank" rel="noopener">fremonttabletennis.com &#8599;</a>')],
+        img("fremont-home-desktop.jpg", "Fremont Table Tennis Academy homepage after the redesign",
+            1440, 900, style="max-height:760px")
+    ) + f"""
+<section class="sect">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <p class="label" data-reveal>The brief</p>
+        <h2 class="tm" data-reveal style="margin-top:1rem">WHICH CLASS IS <em class="it">right for me?</em></h2>
+      </div>
+      <div data-reveal>
+        <p class="lead body">An award-winning academy with two locations, classes for ages 3 to adult, camps, weekly leagues and a pro shop. Every visitor arrives with the same question &mdash; so the redesign answers it first.</p>
       </div>
     </div>
+    <div class="grid g-3" style="margin-top:clamp(2.6rem,6vw,4.6rem)">{featsh}</div>
   </div>
 </section>
 
-<section class="section section--tight">
+<section class="sect sect--tight">
   <div class="wrap">
-    {meta_rail([
-        ("Store", "Table Tennis USA (tabletennisstore.us)"),
-        ("Source", "Shopify Analytics, analytics overview"),
-        ("Currency", "USD"),
-        ("Sessions", "Human sessions, online store only"),
-        ("Captured", "4 November 2026"),
-        ("Method", "Read-only. Nothing in the store was changed."),
-    ])}
+    <p class="label" data-reveal style="margin-bottom:1.6rem">Before and after</p>
+    <div class="grid g-2">
+      {shot("fremont-before.jpg", "The Fremont Table Tennis Academy site before the redesign",
+            "Before &middot; the previous fremonttabletennis.com", 1091, 682)}
+      {shot("fremont-home-desktop.jpg", "The Fremont Table Tennis Academy homepage after the redesign",
+            "After &middot; the site now live", 1440, 900)}
+    </div>
   </div>
 </section>
 
-<section class="section">
+<section class="sect sect--tight">
   <div class="wrap">
-    {shead("01", "The figures",
-           ["Four periods,", "every stage."],
-           "Online-store sessions only. This excludes the store&rsquo;s other sales channels, so these order counts are smaller than the store&rsquo;s total orders.")}
-    <div class="dtable-wrap" style="margin-top:clamp(1.6rem,3vw,2.4rem)" data-reveal>
+    <div class="grid g-2">
+      <div data-reveal>{slot("fremont-programs.jpg", "table-tennis")}</div>
+      {phone("fremont-mobile.jpg", "The redesigned Fremont Table Tennis Academy site on a phone")}
+    </div>
+  </div>
+</section>
+
+<section class="sect sect--tight">
+  <div class="wrap">
+    <!-- TODO: real result. Akintayo to supply one number (class sign-ups, camp
+         registrations since launch). If none is supplied before launch, delete
+         this whole <section>. Do not invent a figure. -->
+    <div class="result-box" data-reveal>
+      <div>
+        <p class="label">Result</p>
+        <h2 class="ts" style="margin-top:.8rem">Add your result here.</h2>
+      </div>
+      <p class="body">One real number tells the story best &mdash; for example, class sign-ups or camp registrations since launch.</p>
+    </div>
+  </div>
+</section>
+""" + next_project('TABLETENNIS<br>STORE.US', "table-tennis-usa.html")
+
+    return page("fremont-table-tennis.html", "Fremont Table Tennis Academy — Case Study",
+                "A full redesign for Fremont Table Tennis Academy, built around the question every "
+                "visitor arrives with: which class is right for me?",
+                "work.html", body, og="fremont-home-desktop.jpg")
+
+
+# ====================================================== CASE: TTS (rebuild) ==
+TTS_PROBLEMS = [
+    "No conversion-focused homepage layout",
+    "Weak product discovery for brand-loyal players",
+    "Thin trust signals on the pages that needed them",
+    "Unclear variant selection on equipment",
+    "Shipping cost arriving as a surprise at checkout",
+    "Broken breadcrumbs and SEO heading structure",
+    "Product pages inconsistent from one to the next",
+    "Video content sending visitors away from the store",
+    "Email address exposed in markup, inviting spam",
+]
+
+def build_ttusa():
+    rows = [("July", "16,349", "899", "466", "234", "1.43%"),
+            ("August", "43,520", "1,076", "608", "296", "0.68%"),
+            ("September", "18,037", "1,084", "719", "353", "1.95%"),
+            ("5 Oct &ndash; 4 Nov", "15,516", "1,194", "1,113", "615", "3.96%")]
+    trows = "".join(
+        f"<tr><td>{a}</td><td>{b}</td><td>{c}</td><td>{d}</td><td>{e}</td><td>{f}</td></tr>"
+        for a, b, c, d, e, f in rows)
+
+    changes = [("01", "Homepage", "Rebuilt around brand discovery &mdash; Butterfly, GEWO, Stiga, Victas."),
+               ("02", "Trust", "Trust signals added where shoppers hesitate."),
+               ("03", "Product pages", "Reworked so variants are clear."),
+               ("04", "Shipping", "Options rebuilt, plus a free-shipping bar at $75.")]
+    ch = "".join(f'<div class="scol" data-reveal><p class="scol__n">{n}</p>'
+                 f'<h3 class="scol__t">{t}</h3><p class="scol__d">{d}</p></div>'
+                 for n, t, d in changes)
+    probs = "".join(f"<li>{p}</li>" for p in TTS_PROBLEMS)
+
+    body = case_head(
+        "( Case study 02 ) &mdash; Table tennis &middot; Top project",
+        'TABLETENNIS <em class="it">Store.us</em>',
+        [("Client", "Table Tennis USA"), ("Platform", "Shopify"),
+         ("Role", "UX design, theme customisation, CRO, SEO"),
+         ("Live site", '<a href="https://tabletennisstore.us" target="_blank" rel="noopener">tabletennisstore.us &#8599;</a>')],
+        img("tts-desk-c.jpg", "TableTennisStore.us homepage", 1440, 760, style="max-height:650px")
+    ) + f"""
+<section class="sect">
+  <div class="wrap">
+    <p class="label" data-reveal>The result</p>
+    <div class="bignum" data-reveal style="margin-top:1.4rem">
+      <p class="bignum__v" data-count="163" data-pre="+" data-post="%">+163%</p>
+      <p class="bignum__d">more completed orders a month &mdash; from 234 in July to 615 in the 30 days to 4 November 2026.</p>
+    </div>
+
+    <div class="dtable-wrap" data-reveal>
       <table class="dtable">
-        <thead><tr><th>Period</th><th class="num">Sessions</th><th class="num">Carts</th><th class="num">Checkouts</th><th class="num">Orders</th><th class="num">Conv. rate</th></tr></thead>
+        <thead><tr><th>Period</th><th>Sessions</th><th>Carts</th><th>Checkouts</th><th>Orders</th><th>Conv. rate</th></tr></thead>
         <tbody>{trows}</tbody>
       </table>
     </div>
-
-    {shotgrid(
-      shot("tts-nov-funnel.jpg",
-           "Shopify Analytics, conversion rate breakdown, 5 Oct&ndash;4 Nov 2026 against 4 Sept&ndash;4 Oct 2026. Captured 4 November 2026.",
-           1163, 280,
-           alt="Shopify Analytics for 5 October to 4 November 2026 showing 15,516 sessions, 1,194 carts, 1,113 checkouts, 615 completed checkouts and a 3.96% conversion rate"),
-      shot("tts-aug-funnel.jpg",
-           "Shopify Analytics, conversion rate breakdown, 1&ndash;31 Aug 2026 against 1&ndash;31 Jul 2026. Captured 4 November 2026.",
-           1163, 262,
-           alt="Shopify Analytics for August 2026 showing 43,520 sessions, 1,076 carts, 608 checkouts, 296 completed checkouts and a 0.68% conversion rate"),
-      shot("tts-sep-funnel.jpg",
-           "Shopify Analytics, conversion rate breakdown, 1&ndash;30 Sept 2026 against 2&ndash;31 Aug 2026. Captured 4 November 2026.",
-           1163, 262,
-           alt="Shopify Analytics for September 2026 showing 18,037 sessions, 1,084 carts, 719 checkouts, 353 completed checkouts and a 1.95% conversion rate"),
-      shot("tts-jul.jpg",
-           "Shopify Analytics, conversion rate breakdown, 1&ndash;31 Jul 2026 against 31 May&ndash;30 Jun 2026. Captured September 2026.",
-           934, 492,
-           alt="Shopify Analytics for July 2026 showing 16,349 sessions, 899 carts, 466 checkouts, 234 completed checkouts and a 1.43% conversion rate"),
-      cls="shotgrid--2")}
+    <p class="foot-note" data-reveal>Source: Shopify Analytics, July&ndash;4 Nov 2026. August&rsquo;s session spike came mostly from Singapore. Shopify changed its session definition on 21 Sept 2026. Revenue is deliberately not published. <a href="proof.html" style="color:var(--royal)">See the proof log</a>.</p>
   </div>
 </section>
 
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="wrap">
-    {shead("02", "Known distortions",
-           ["Two reasons the", "conversion rate lies."],
-           "Both are visible in the captures above, and both are the reason this site leads with order counts instead.")}
-
-    {flag("August&rsquo;s session count was inflated",
-          "August recorded 43,520 sessions against 16,349 in July. The dashboard&rsquo;s sessions-by-location tile "
-          "shows <strong>Singapore at 21.5K</strong> and China at 4.1K for that month; desktop sessions rose 268%. "
-          "By September, Singapore had fallen to 789 and China to 818.",
-          "Conversion rate is orders divided by sessions, so roughly 25,000 sessions that were never going to buy "
-          "dragged August down to 0.68%. Treat the 0.68% figure as a measurement artefact, not a business result.")}
-
-    {flag("Shopify changed how sessions are counted on 21 September 2026",
-          "The analytics page carries a notice: &ldquo;Beginning Sept 21, 2026, sessions and related metrics may "
-          "shift as Shopify Analytics enables better visibility into real shopper activity.&rdquo; A "
-          "<em>Definition change</em> marker appears on the September chart at that date.",
-          "Any conversion rate that spans 21 September is not strictly comparable with one from before it. "
-          "Order, cart and checkout counts are unaffected.")}
-
-    {shot("tts-sep-location.jpg",
-          "Shopify Analytics, sessions by location, 1&ndash;30 Sept 2026 against 2&ndash;31 Aug 2026. The pale bar behind each is August. Captured 4 November 2026.",
-          754, 330, cls="shot--narrow",
-          alt="Shopify sessions by location for September 2026 against August: Singapore down 96% from 21,500 to 789, China down 80% from 4,100 to 818")}
-  </div>
-</section>
-
-<section class="section section--tight">
+<section class="sect sect--tight moon">
   <div class="wrap">
     <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">Deliberately absent</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">No revenue, no customer data, no testimonials I did not earn.</h2>
+      <div>
+        <p class="label" data-reveal>What I found</p>
+        <h2 class="tm" data-reveal style="margin-top:1rem">HALF OF CHECKOUTS WERE<br><em class="it">abandoned.</em></h2>
       </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>The store&rsquo;s sales figures exist and I have seen them. They are the client&rsquo;s to publish, not
-        mine, so no dollar amount appears anywhere on this site.</p>
-        <p>Nor does anything that could identify a customer. The captures on this page are aggregate analytics
-        screens, which is why they are safe to show you at full size.</p>
-        <p><strong>Nothing on this site is a projection of what your store would do.</strong> It is a record of what
-        one store did, with the parts that are not flattering left in.</p>
+      <div data-reveal>
+        <p class="lead body">Only 5.5% of July sessions reached a cart, and about half of the checkouts that started were never finished. Weak product discovery, thin trust signals, unclear variants and shipping costs that appeared too late.</p>
+        <details class="more">
+          <summary>All nine problems found in the audit</summary>
+          <ul>{probs}</ul>
+        </details>
       </div>
     </div>
-    <p class="updated" style="margin-top:clamp(2rem,4vw,3rem)" data-reveal>Last updated 4 November 2026</p>
   </div>
 </section>
 
-{cta_block("Want this run on your store?",
-           "Send the URL and what is not working. I will tell you where I think the orders are leaking before you pay me anything.")}
-"""
-    return page("proof.html", "Proof log — AKINTAYO",
-                "Where every figure on akintayoakingbehin.com comes from: dated Shopify Analytics screenshots for "
-                "Table Tennis USA, with the two known distortions in the conversion-rate data stated plainly.",
-                "work.html", body)
+<section class="sect sect--tight">
+  <div class="wrap">
+    <p class="label" data-reveal style="margin-bottom:1.6rem">What changed</p>
+    <div class="grid g-4">{ch}</div>
+    <p class="body" data-reveal style="margin-top:2rem"><strong>93% of carts reached checkout</strong>, against 52% in July.</p>
+  </div>
+</section>
 
+<section class="sect sect--tight">
+  <div class="wrap">
+    <div class="grid g-2">
+      {shot("tts-cart-unlocked.jpg","The side cart on tabletennisstore.us showing a full progress bar reading: you have unlocked free shipping","Live store &middot; free-shipping bar cleared at $75",1354,675)}
+      {phone("tts-mobile.jpg","TableTennisStore.us on a phone")}
+    </div>
+    <div class="grid g-3" style="margin-top:clamp(1.6rem,4vw,3rem)">
+      {shot("tts-nov-funnel.jpg","Shopify Analytics for 5 October to 4 November 2026: 15,516 sessions, 1,194 carts, 1,113 checkouts, 615 completed orders","Shopify Analytics &middot; 5 Oct &ndash; 4 Nov 2026",1163,280)}
+      {shot("tts-jul.jpg","Shopify Analytics for July 2026: 16,349 sessions, 899 carts, 466 checkouts, 234 completed orders","Shopify Analytics &middot; 1&ndash;31 July 2026",934,492)}
+      {shot("tts-sep-location.jpg","Shopify sessions by location for September 2026 against August: Singapore down 96% from 21,500 to 789","Sessions by location &middot; Sept vs Aug 2026",754,330)}
+    </div>
+  </div>
+</section>
+""" + next_project('ALL <em class="it">work.</em>', "work.html",
+                   label="Back to", cta_label="See all five projects")
+
+    return page("table-tennis-usa.html", "TableTennisStore.us — Case Study",
+                "Shopify UX and conversion work for Table Tennis USA. Completed orders from 234 in "
+                "July 2026 to 615 in the 30 days to 4 November, with the analytics attached.",
+                "work.html", body, og="og-ttusa.jpg")
+
+
+# =============================================== PROJECT PAGES (3 + extras) ==
+def build_gewo():
+    body = case_head(
+        "( Project 03 ) &mdash; Table tennis &middot; Manufacturer store",
+        'GEWO <em class="it">USA.</em>',
+        [("Client", "GEWO USA"), ("Sector", "Manufacturer-owned ecommerce"),
+         ("Role", "Website design"),
+         ("Live site", '<a href="https://www.gewousa.com" target="_blank" rel="noopener">gewousa.com &#8599;</a>')],
+        img("gewo-home.jpg", "GEWO USA homepage", 1365, 1180, style="max-height:700px")
+    ) + f"""
+<section class="sect">
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <p class="label" data-reveal>The brief</p>
+        <h2 class="tm" data-reveal style="margin-top:1rem">BE THE BRAND AND <em class="it">the shop.</em></h2>
+      </div>
+      <div data-reveal>
+        <p class="lead body">The US store of a table tennis equipment manufacturer. The catalogue runs from shakehand and penhold blades through four categories of rubber, indoor and outdoor tables, balls, apparel, footwear and maintenance items down to edge tape and glue.</p>
+        <p class="body" style="margin-top:1.2rem">Those are not one kind of purchase. Apparel is browsed, rubber is specified, a table is researched, edge tape is re-ordered. The store has to let all four happen without the brand story blocking someone who came to buy glue.</p>
+      </div>
+    </div>
+
+    <div class="grid g-3" style="margin-top:clamp(2.6rem,6vw,4.6rem)">
+      <div class="scol" data-reveal><p class="scol__n">01</p><h3 class="scol__t">1.2s largest paint</h3><p class="scol__d">Largest Contentful Paint at the 75th percentile. Google calls anything under 2.5s good.</p></div>
+      <div class="scol" data-reveal><p class="scol__n">02</p><h3 class="scol__t">56ms interaction</h3><p class="scol__d">Interaction to Next Paint, against a 200ms threshold.</p></div>
+      <div class="scol" data-reveal><p class="scol__n">03</p><h3 class="scol__t">Zero layout shift</h3><p class="scol__d">Nothing on the page moves while it loads. Not low &mdash; zero.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sect sect--tight">
+  <div class="wrap">
+    <div class="grid g-2">
+      {shot("gewo-pdp.jpg","A GEWO USA product page","Product page &middot; price, variant, stock and both buy paths above the fold",1366,1180)}
+      {shot("gewo-pdp-bands.jpg","The who-it-is-for and performance bands below a GEWO USA product","Below every product &mdash; who it is for, a performance read, and the sponsored players",1366,1250)}
+    </div>
+    <div style="margin-top:clamp(1.6rem,4vw,3rem)">
+      {shot("gewo-vitals.jpg","Shopify Core Web Vitals for GEWO USA: LCP 1201ms, INP 56ms, CLS 0, all rated good","Core Web Vitals &middot; 30 days, as Shopify recorded them",688,76)}
+    </div>
+    <p class="foot-note" data-reveal style="margin-top:1.6rem">The speed figures above are measured. There is no conversion or revenue data I can publish for this store, so none appears here.</p>
+  </div>
+</section>
+""" + next_project('OCTAGON.', "octagon.html")
+    return page("gewo-usa.html", "GEWO USA — Project",
+                "Website design for GEWO USA, the US store of a table tennis equipment "
+                "manufacturer. 1.2s largest contentful paint and zero layout shift.",
+                "work.html", body, og="og-gewo.jpg")
+
+
+def build_short(fname, num, label_bits, title_html, meta, hero, nxt, og, title, desc, todo=True):
+    todo_html = ("<!-- TODO: description. Akintayo to supply. Until then this page stays short "
+                 "and claims nothing. -->") if todo else ""
+    live = [v for k, v in meta if k == "Live site"][0]
+    import re as _re
+    url = _re.search(r'href="([^"]+)"', live).group(1)
+    body = case_head(f"( Project {num} ) &mdash; {label_bits}", title_html, meta, hero) + f"""
+<section class="sect">
+  <div class="wrap">
+    <div class="split">
+      <div><p class="label" data-reveal>The project</p></div>
+      <div data-reveal>
+        {todo_html}
+        <p class="lead body">A description of this project is on the way.</p>
+        <div style="margin-top:2rem">{btn("Visit the live site", url, "primary", ' target="_blank" rel="noopener"')}</div>
+      </div>
+    </div>
+  </div>
+</section>
+""" + nxt
+    return page(fname, title, desc, "work.html", body, og=og)
+
+
+def build_octagon():
+    return build_short(
+        "octagon.html", "04", "Football &middot; Sports marketing",
+        'OCTAGON.', [("Client", "Octagon"), ("Sector", "Football &middot; sports marketing"),
+                     ("Role", "Website design"),
+                     ("Live site", '<a href="https://www.octagon.com" target="_blank" rel="noopener">octagon.com &#8599;</a>')],
+        img("octagon-home.jpg", "Octagon website", 1440, 900, style="max-height:700px"),
+        next_project('STARTING <em class="it">Eleven.</em>', "starting-eleven.html"),
+        "octagon-home.jpg", "Octagon — Project",
+        "Website design for Octagon, a football and sports marketing business.")
+
+
+def build_starting_eleven():
+    return build_short(
+        "starting-eleven.html", "05", "Football &middot; Retail store",
+        'STARTING <em class="it">Eleven.</em>',
+        [("Client", "Starting Eleven"), ("Sector", "Football retail &middot; Lexington, KY"),
+         ("Role", "Website design &middot; Shopify"),
+         ("Live site", '<a href="https://startingxi.com" target="_blank" rel="noopener">startingxi.com &#8599;</a>')],
+        img("starting-eleven-home.jpg", "Starting Eleven online store", 1440, 640, style="max-height:700px"),
+        next_project('ALL <em class="it">work.</em>', "work.html",
+                     label="Back to", cta_label="See all five projects"),
+        "starting-eleven-home.jpg", "Starting Eleven — Project",
+        "Shopify website design for Starting Eleven, a football retail store in Lexington, Kentucky.")
+
+
+# ================================================================== PROOF ====
+def build_proof():
+    rows = [("1&ndash;31 Jul 2026", "16,349", "899", "466", "234", "1.43%"),
+            ("1&ndash;31 Aug 2026", "43,520", "1,076", "608", "296", "0.68%"),
+            ("1&ndash;30 Sep 2026", "18,037", "1,084", "719", "353", "1.95%"),
+            ("5 Oct&ndash;4 Nov 2026", "15,516", "1,194", "1,113", "615", "3.96%")]
+    trows = "".join(f"<tr><td>{a}</td><td>{b}</td><td>{c}</td><td>{d}</td><td>{e}</td><td>{f}</td></tr>"
+                    for a, b, c, d, e, f in rows)
+    body = f"""
+<section class="sect sect--tight">
+  <div class="wrap">
+    <p class="label" data-reveal>( Proof log ) &mdash; Where every number comes from</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem;font-size:clamp(2.6rem,7.4vw,6.5rem)">THE <em class="it">receipts.</em></h1>
+    <p class="lead body" data-reveal style="margin-top:1.8rem;max-width:52ch">Every figure on this site traces to a dated screenshot of the client&rsquo;s own Shopify Analytics. Nothing is estimated, rounded up or recalled from memory.</p>
+    {meta_row([("Store", "Table Tennis USA"), ("Source", "Shopify Analytics"),
+               ("Currency", "USD, human sessions"), ("Captured", "4 November 2026")])}
+  </div>
+</section>
+
+<section class="sect" style="padding-top:0">
+  <div class="wrap">
+    <div class="dtable-wrap" data-reveal>
+      <table class="dtable">
+        <thead><tr><th>Period</th><th>Sessions</th><th>Carts</th><th>Checkouts</th><th>Orders</th><th>Conv. rate</th></tr></thead>
+        <tbody>{trows}</tbody>
+      </table>
+    </div>
+    <div class="grid g-2" style="margin-top:clamp(2rem,5vw,3.4rem)">
+      {shot("tts-nov-funnel.jpg","Shopify Analytics for 5 October to 4 November 2026","Conversion rate breakdown &middot; 5 Oct&ndash;4 Nov 2026 vs 4 Sept&ndash;4 Oct 2026",1163,280)}
+      {shot("tts-aug-funnel.jpg","Shopify Analytics for August 2026","Conversion rate breakdown &middot; 1&ndash;31 Aug 2026 vs 1&ndash;31 Jul 2026",1163,262)}
+      {shot("tts-sep-funnel.jpg","Shopify Analytics for September 2026","Conversion rate breakdown &middot; 1&ndash;30 Sept 2026 vs 2&ndash;31 Aug 2026",1163,262)}
+      {shot("tts-jul.jpg","Shopify Analytics for July 2026","Conversion rate breakdown &middot; 1&ndash;31 July 2026",934,492)}
+    </div>
+  </div>
+</section>
+
+<section class="sect sect--tight moon">
+  <div class="wrap">
+    <p class="label" data-reveal>Known distortions</p>
+    <h2 class="tm" data-reveal style="margin-top:1rem;margin-bottom:2rem">TWO REASONS THE RATE<br><em class="it">lies.</em></h2>
+    <div class="grid g-2">
+      <div class="scol" data-reveal>
+        <h3 class="scol__t">August&rsquo;s traffic was not real</h3>
+        <p class="scol__d">43,520 sessions against July&rsquo;s 16,349, almost all of it Singapore going from a handful to 21,500. By September it was back to 789. Roughly 25,000 sessions that were never going to buy pushed August down to 0.68%.</p>
+      </div>
+      <div class="scol" data-reveal>
+        <h3 class="scol__t">Shopify changed how it counts sessions</h3>
+        <p class="scol__d">A notice on the analytics page says sessions and related metrics may shift from 21 September 2026. Any rate spanning that date is not like-for-like. Order counts are unaffected, which is why they are the headline.</p>
+      </div>
+    </div>
+    <div style="margin-top:clamp(2rem,4vw,3rem);max-width:620px">
+      {shot("tts-sep-location.jpg","Shopify sessions by location, September against August 2026","Sessions by location &middot; the pale bar behind each is August",754,330)}
+    </div>
+  </div>
+</section>
+
+<section class="sect sect--tight">
+  <div class="wrap">
+    <div class="split">
+      <div><p class="label" data-reveal>Deliberately absent</p>
+        <h2 class="tm" data-reveal style="margin-top:1rem">NO REVENUE. NO CUSTOMER <em class="it">data.</em></h2></div>
+      <div data-reveal>
+        <p class="body">The store&rsquo;s sales figures exist and I have seen them. They are the client&rsquo;s to publish, not mine, so no dollar amount appears anywhere on this site. Nor does anything that could identify a customer.</p>
+        <p class="body" style="margin-top:1.2rem"><strong>Nothing here is a projection of what your store would do.</strong> It is a record of what one store did, with the parts that are not flattering left in.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{cta()}
+"""
+    return page("proof.html", "Proof log — Akintayo",
+                "Where every figure on akintayoakingbehin.com comes from: dated Shopify Analytics "
+                "screenshots, with the two known distortions stated plainly.",
+                "work.html", body, og="og-ttusa.jpg")
+
+
+def build_404():
+    body = f"""
+<section class="sect" style="min-height:52vh">
+  <div class="wrap">
+    <p class="label" data-reveal>( 404 ) &mdash; Off the table</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem">PAGE NOT<br><em class="it">found.</em></h1>
+    <p class="lead body" data-reveal style="margin-top:1.8rem;max-width:44ch">That link has gone. The work, the sports and the services are all still here.</p>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:2.4rem" data-reveal>
+      {btn("See the work", "work.html", "primary")}
+      {btn("Go home", "index.html", "outline")}
+    </div>
+  </div>
+</section>
+"""
+    return page("404.html", "Page not found — Akintayo",
+                "That page could not be found.", "", body)
+
+
+# ================================================================== EXTRAS ==
+PUBLIC = ["index.html", "work.html", "sports.html", "services.html", "about.html",
+          "contact.html", "fremont-table-tennis.html", "table-tennis-usa.html",
+          "gewo-usa.html", "octagon.html", "starting-eleven.html", "proof.html"]
 
 def build_extras():
     with open(os.path.join(OUT, "robots.txt"), "w") as f:
-        f.write("User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n" % DOMAIN)
+        f.write(f"User-agent: *\nAllow: /\nDisallow: /paul-david.html\n\nSitemap: {DOMAIN}/sitemap.xml\n")
 
-    pages = ["index.html", "work.html", "table-tennis-usa.html", "gewo-usa.html",
-             "paul-david.html", "services.html", "about.html", "contact.html", "proof.html"]
-    urls = "".join(
-        '  <url><loc>%s/%s</loc><priority>%s</priority></url>\n' % (
-            DOMAIN, p, "1.0" if p == "index.html" else ("0.9" if "usa" in p or p == "work.html" else "0.8"))
-        for p in pages)
+    urls = ""
+    for p in PUBLIC:
+        pr = "1.0" if p == "index.html" else ("0.9" if p in ("work.html", "sports.html", "services.html") else "0.8")
+        urls += f"  <url><loc>{DOMAIN}/{p}</loc><priority>{pr}</priority></url>\n"
     with open(os.path.join(OUT, "sitemap.xml"), "w") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-                + urls + '</urlset>\n')
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + '</urlset>\n')
 
     open(os.path.join(OUT, ".nojekyll"), "w").write("")
 
-    # Only write a favicon if none exists. The one in the project was made by
-    # hand later; regenerating it on every build quietly threw that away.
-    fav = os.path.join(OUT, "favicon.svg")
-    if not os.path.exists(fav):
-        with open(fav, "w") as f:
-            f.write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-                    '<rect width="32" height="32" fill="#070B0D"/>'
-                    '<circle cx="16" cy="16" r="7" fill="#155EEF"/></svg>')
+    # paul-david.html stays on disk but leaves the index and every link list.
+    pd = os.path.join(OUT, "paul-david.html")
+    if os.path.exists(pd):
+        s = open(pd, encoding="utf-8").read()
+        if 'name="robots"' not in s:
+            s = s.replace("</title>", '</title>\n<meta name="robots" content="noindex, nofollow">', 1)
+            open(pd, "w", encoding="utf-8").write(s)
 
 
 if __name__ == "__main__":
-    built = [build_home(), build_work(), build_ttusa(), build_gewo(),
-             build_paul(), build_services(), build_about(), build_contact(),
-             build_proof(), build_404()]
+    built = [build_home(), build_work(), build_sports(), build_services(), build_about(),
+             build_contact(), build_fremont(), build_ttusa(), build_gewo(), build_octagon(),
+             build_starting_eleven(), build_proof(), build_404()]
     build_extras()
-    print("Built:", ", ".join(built))
+    print("Built " + str(len(built)) + ": " + ", ".join(built))

@@ -1,308 +1,119 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GEWO USA — Case Study — AKINTAYO</title>
-<meta name="description" content="Website design for GEWO USA, the US store of a table tennis equipment manufacturer — navigation built on equipment taxonomy across 27 subcategories, trust claims only a manufacturer can make, and combo specials for customers who don't yet know what to ask for.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GEWO USA — Project</title>
+<meta name="description" content="Website design for GEWO USA, the US store of a table tennis equipment manufacturer. 1.2s largest contentful paint and zero layout shift.">
 <link rel="canonical" href="https://akintayoakingbehin.com/gewo-usa.html">
-<meta name="theme-color" content="#08090b">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="AKINTAYO">
-<meta property="og:title" content="GEWO USA — Case Study — AKINTAYO">
-<meta property="og:description" content="Website design for GEWO USA, the US store of a table tennis equipment manufacturer — navigation built on equipment taxonomy across 27 subcategories, trust claims only a manufacturer can make, and combo specials for customers who don't yet know what to ask for.">
+<meta property="og:title" content="GEWO USA — Project">
+<meta property="og:description" content="Website design for GEWO USA, the US store of a table tennis equipment manufacturer. 1.2s largest contentful paint and zero layout shift.">
 <meta property="og:url" content="https://akintayoakingbehin.com/gewo-usa.html">
-<meta property="og:image" content="https://akintayoakingbehin.com/og-gewo.jpg">
+<meta property="og:image" content="https://akintayoakingbehin.com/assets/img/og-gewo.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Instrument+Serif:ital@1&family=Martian+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="site.css">
+<meta name="twitter:title" content="GEWO USA — Project">
+<meta name="twitter:description" content="Website design for GEWO USA, the US store of a table tennis equipment manufacturer. 1.2s largest contentful paint and zero layout shift.">
+<meta name="twitter:image" content="https://akintayoakingbehin.com/assets/img/og-gewo.jpg">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Instrument+Serif:ital@1&family=Martian+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/site.css">
+
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<div class="grain" aria-hidden="true"></div>
-<div class="curtain" aria-hidden="true"></div>
-<div class="progress" aria-hidden="true"></div>
-<div class="cursor" aria-hidden="true"><span class="cursor__label"></span></div>
-<div class="cursor-dot" aria-hidden="true"></div>
-<div class="peek" aria-hidden="true"></div>
-
-<header class="nav">
-  <div class="nav__inner">
-    <a class="logo" href="index.html" aria-label="AKINTAYO — home"><span class="logo__ball"></span>AKINTAYO</a>
-    <nav class="nav__links" aria-label="Primary"><a class="nav__link" href="work.html" aria-current="page">Work</a><a class="nav__link" href="services.html">Services</a><a class="nav__link" href="about.html">About</a><a class="nav__link" href="contact.html">Contact</a></nav>
-    <a class="btn nav__cta" href="mailto:akintayo@akintayoakingbehin.com?subject=Website%20project%20enquiry" data-magnet="0.2"><span>Start a project</span><svg class="btn__arrow" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 9L9 1M9 1H2.5M9 1v6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-    <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+<header class="hdr hdr--static">
+  <div class="wrap hdr__in">
+    <a class="mark" href="index.html" aria-label="Akintayo, home">AKINTAYO<i></i></a>
+    <nav class="nav" aria-label="Primary"><a href="work.html" aria-current="page">Work<sup>01</sup></a><a href="sports.html">Sports<sup>02</sup></a><a href="services.html">Services<sup>03</sup></a><a href="about.html">About<sup>04</sup></a><a href="contact.html">Contact<sup>05</sup></a></nav>
+    <div class="hdr__cta"><a class="btn btn--primary" href="mailto:akintayo@akintayoakingbehin.com?subject=Website%20project%20enquiry"><span>Start a project</span><svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true"><path d="M10 1l5 5-5 5M15 6H0" stroke="currentColor" stroke-width="1.6"/></svg></a></div>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
   </div>
 </header>
-
-<div class="menu" id="mobile-menu" aria-hidden="true">
-  <nav class="menu__list" aria-label="Mobile"><a class="menu__link" href="work.html"><span>01</span>Work</a><a class="menu__link" href="services.html"><span>02</span>Services</a><a class="menu__link" href="about.html"><span>03</span>About</a><a class="menu__link" href="contact.html"><span>04</span>Contact</a></nav>
-  <div class="menu__foot">
-    <p class="mono">Email only — no forms, no calls to book.</p>
-    <a class="cta__mail" style="font-size:clamp(1.1rem,5vw,1.7rem)" href="mailto:akintayo@akintayoakingbehin.com?subject=Website%20project%20enquiry">akintayo@akintayoakingbehin.com</a>
-  </div>
+<div class="menu" id="menu" aria-label="Menu">
+  <button class="menu__close" type="button" aria-label="Close menu">&times;</button>
+  <a href="work.html">Work</a><a href="sports.html">Sports</a><a href="services.html">Services</a><a href="about.html">About</a><a href="contact.html">Contact</a>
+  <p class="menu__mail"><a href="mailto:akintayo@akintayoakingbehin.com?subject=Website%20project%20enquiry" style="color:inherit">akintayo@akintayoakingbehin.com</a></p>
 </div>
 <main id="main">
 
-<section class="case-hero">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap hero__inner">
-    <p class="mono eyebrow" data-reveal="fade" data-onload>Case study 02 &mdash; Shopify ecommerce</p>
-    <div style="margin-top:clamp(1.4rem,3vw,2.4rem)">
-      <h1 class="display case-hero__title lines" data-onload><span class="line"><span>GEWO <span class="accent">USA</span></span></span></h1>
-    </div>
-    <div class="hero__body">
-      <div class="hero__lead">
-        <p class="lead lead--wide" data-reveal data-onload>The US store of a table tennis equipment manufacturer,
-        carrying two jobs at once: be the brand, and be the shop. It loads its largest element in
-        <strong>1.2 seconds</strong> and moves nothing while it does. The store is live, so judge it there.</p>
-      </div>
-    </div>
-    <div class="live" data-reveal>
-  <a class="btn btn--ghost" href="https://www.gewousa.com/" target="_blank" rel="noopener" data-magnet="0.22">
-    <span>Open the live store</span><svg class="btn__arrow" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 9L9 1M9 1H2.5M9 1v6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-  <p class="mono">The work is live &mdash; judge it there</p>
-</div>
-    <dl class="meta" data-reveal="fade"><div class="meta__item"><dt class="mono">Client</dt><dd>GEWO USA</dd></div><div class="meta__item"><dt class="mono">Sector</dt><dd>Manufacturer-owned ecommerce</dd></div><div class="meta__item"><dt class="mono">Platform</dt><dd>Shopify</dd></div><div class="meta__item"><dt class="mono">Role</dt><dd>Website design</dd></div><div class="meta__item"><dt class="mono">Live site</dt><dd><a href="https://www.gewousa.com/" target="_blank" rel="noopener">gewousa.com &#8599;</a></dd></div><div class="meta__item"><dt class="mono">Measured</dt><dd>Core Web Vitals, 30 days</dd></div></dl>
+<section class="sect sect--tight">
+  <div class="wrap">
+    <p class="label" data-reveal>( Project 03 ) &mdash; Table tennis &middot; Manufacturer store</p>
+    <h1 class="xl" data-reveal style="margin-top:1.4rem;font-size:clamp(2.9rem,8.6vw,7.75rem)">GEWO <em class="it">USA.</em></h1>
+    <dl class="meta" data-reveal><div><dt>Client</dt><dd>GEWO USA</dd></div><div><dt>Sector</dt><dd>Manufacturer-owned ecommerce</dd></div><div><dt>Role</dt><dd>Website design</dd></div><div><dt>Live site</dt><dd><a href="https://www.gewousa.com" target="_blank" rel="noopener">gewousa.com &#8599;</a></dd></div></dl>
+    <div class="casehero" data-reveal><img src="assets/img/gewo-home.jpg" alt="GEWO USA homepage" width="1365" height="1180" loading="lazy" decoding="async" style="max-height:700px"></div>
   </div>
 </section>
-
-<section class="section section--tight">
+<section class="sect">
   <div class="wrap">
     <div class="split">
-      <div class="split__l" data-reveal>
-        <p class="mono eyebrow">The brief in one line</p>
-        <h2 class="bigquote" style="margin-top:1.2rem">Make the brand and the catalogue stop fighting each other.</h2>
+      <div>
+        <p class="label" data-reveal>The brief</p>
+        <h2 class="tm" data-reveal style="margin-top:1rem">BE THE BRAND AND <em class="it">the shop.</em></h2>
       </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>The catalogue runs from shakehand and penhold blades through four categories of rubber, indoor and
-        outdoor tables, balls, apparel, footwear, and maintenance items down to edge tape and glue.</p>
-        <p>Those are not one kind of purchase. <strong>Apparel is browsed. Rubber is specified. A table is
-        researched. Edge tape is re-ordered.</strong> The store has to let all four happen without the brand story
-        blocking someone who came to buy glue.</p>
+      <div data-reveal>
+        <p class="lead body">The US store of a table tennis equipment manufacturer. The catalogue runs from shakehand and penhold blades through four categories of rubber, indoor and outdoor tables, balls, apparel, footwear and maintenance items down to edge tape and glue.</p>
+        <p class="body" style="margin-top:1.2rem">Those are not one kind of purchase. Apparel is browsed, rubber is specified, a table is researched, edge tape is re-ordered. The store has to let all four happen without the brand story blocking someone who came to buy glue.</p>
       </div>
+    </div>
+
+    <div class="grid g-3" style="margin-top:clamp(2.6rem,6vw,4.6rem)">
+      <div class="scol" data-reveal><p class="scol__n">01</p><h3 class="scol__t">1.2s largest paint</h3><p class="scol__d">Largest Contentful Paint at the 75th percentile. Google calls anything under 2.5s good.</p></div>
+      <div class="scol" data-reveal><p class="scol__n">02</p><h3 class="scol__t">56ms interaction</h3><p class="scol__d">Interaction to Next Paint, against a 200ms threshold.</p></div>
+      <div class="scol" data-reveal><p class="scol__n">03</p><h3 class="scol__t">Zero layout shift</h3><p class="scol__d">Nothing on the page moves while it loads. Not low &mdash; zero.</p></div>
     </div>
   </div>
 </section>
 
-<section class="section section--tight">
+<section class="sect sect--tight">
   <div class="wrap">
-    <div class="shotgrid shotgrid--2" data-stagger><figure class="shot shot--crop" data-reveal>
-  <button type="button" class="shot__open" data-lightbox="gewo-home.jpg" data-alt="The homepage. Brand first, then the trust strip, then eight collection tiles — so a player who came to shop is two clicks from the right category." data-caption="The homepage. Brand first, then the trust strip, then eight collection tiles — so a player who came to shop is two clicks from the right category." aria-label="Open full size: The homepage. Brand first, then the trust strip, then eight collection tiles — so a player who came to shop is two clicks from the right category."><span class="shot__frame"><div class="shot__bar"><span class="shot__dots"><i></i><i></i><i></i></span><span class="shot__url">gewousa.com</span></div><img src="gewo-home.jpg" alt="The homepage. Brand first, then the trust strip, then eight collection tiles — so a player who came to shop is two clicks from the right category." width="1365" height="1180" loading="lazy" decoding="async"><span class="shot__zoom">Tap to enlarge</span></span></button>
-  <figcaption class="shot__cap">The homepage. Brand first, then the trust strip, then eight collection tiles — so a player who came to shop is two clicks from the right category.</figcaption>
-</figure><figure class="shot shot--crop" data-reveal>
-  <button type="button" class="shot__open" data-lightbox="gewo-pdp.jpg" data-alt="A product page. Price, variant, stock count and both buy paths above the fold, with the full specification underneath for the players who read it." data-caption="A product page. Price, variant, stock count and both buy paths above the fold, with the full specification underneath for the players who read it." aria-label="Open full size: A product page. Price, variant, stock count and both buy paths above the fold, with the full specification underneath for the players who read it."><span class="shot__frame"><div class="shot__bar"><span class="shot__dots"><i></i><i></i><i></i></span><span class="shot__url">gewousa.com/products</span></div><img src="gewo-pdp.jpg" alt="A product page. Price, variant, stock count and both buy paths above the fold, with the full specification underneath for the players who read it." width="1366" height="1180" loading="lazy" decoding="async"><span class="shot__zoom">Tap to enlarge</span></span></button>
-  <figcaption class="shot__cap">A product page. Price, variant, stock count and both buy paths above the fold, with the full specification underneath for the players who read it.</figcaption>
-</figure></div>
-    <figure class="shot shot--crop" data-reveal>
-  <button type="button" class="shot__open" data-lightbox="gewo-pdp-bands.jpg" data-alt="Below every product: who it is for, a four-point performance read, and endorsements from GEWO&rsquo;s own sponsored players. A reseller cannot publish any of this. The manufacturer can." data-caption="Below every product: who it is for, a four-point performance read, and endorsements from GEWO&rsquo;s own sponsored players. A reseller cannot publish any of this. The manufacturer can." aria-label="Open full size: Below every product: who it is for, a four-point performance read, and endorsements from GEWO&rsquo;s own sponsored players. A reseller cannot publish any of this. The manufacturer can."><span class="shot__frame"><img src="gewo-pdp-bands.jpg" alt="Below every product: who it is for, a four-point performance read, and endorsements from GEWO&rsquo;s own sponsored players. A reseller cannot publish any of this. The manufacturer can." width="1366" height="1250" loading="lazy" decoding="async"><span class="shot__zoom">Tap to enlarge</span></span></button>
-  <figcaption class="shot__cap">Below every product: <b>who it is for</b>, a four-point performance read, and endorsements from GEWO&rsquo;s own sponsored players. A reseller cannot publish any of this. The manufacturer can.</figcaption>
-</figure>
-  </div>
-</section>
-
-<section class="section" style="background:var(--ink-2);border-block:1px solid var(--line)">
-  <div class="wrap" style="position:relative;z-index:2">
-    <div class="shead">
-  <div class="shead__no" data-reveal="fade"><p class="mono mono--accent">01</p><p class="mono">Information architecture</p></div>
-  <div class="shead__title"><h2 class="display h2 lines"><span class="line"><span>The menu is the</span></span><span class="line"><span>shop assistant.</span></span></h2></div>
-  <div class="shead__aside" data-reveal><p>Six headings, twenty-seven subcategories, organised by how table tennis equipment is actually classified rather than how a generic store template wants to group it.</p></div>
-</div>
-    <div class="tree" data-stagger><div class="branch" data-reveal>
-  <h3 class="branch__h">Rackets<span>3 sub</span></h3>
-  <ul><li>Paddles <em>Shakehand</em></li><li>Blades <em>Shakehand, Chinese penhold</em></li><li>Combo specials</li></ul>
-</div><div class="branch" data-reveal>
-  <h3 class="branch__h">Rubber<span>4 sub</span></h3>
-  <ul><li>Inverted</li><li>Short pips</li><li>Long pips</li><li>Anti-spin</li></ul>
-</div><div class="branch" data-reveal>
-  <h3 class="branch__h">Tables<span>5 sub</span></h3>
-  <ul><li>Indoor</li><li>Outdoor</li><li>Nets &amp; net sets</li><li>Cleaner</li><li>Accessories</li></ul>
-</div><div class="branch" data-reveal>
-  <h3 class="branch__h">Ball<span>5 sub</span></h3>
-  <ul><li>Tournament</li><li>Training</li><li>Cases</li><li>Collectors</li><li>Collector nets</li></ul>
-</div><div class="branch" data-reveal>
-  <h3 class="branch__h">Accessories<span>6 sub</span></h3>
-  <ul><li>Clothing</li><li>Bags</li><li>Shoes</li><li>Racket care</li><li>Rubber accessories</li><li>Novelty</li></ul>
-</div><div class="branch" data-reveal>
-  <h3 class="branch__h">Deals<span>4 sub</span></h3>
-  <ul><li>Bundles</li><li>New arrivals</li><li>On sale</li><li>Clearance</li></ul>
-</div></div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap">
-    <div class="shead">
-  <div class="shead__no" data-reveal="fade"><p class="mono mono--accent">02</p><p class="mono">Catalogue depth</p></div>
-  <div class="shead__title"><h2 class="display h2 lines"><span class="line"><span>What is actually</span></span><span class="line"><span>behind each tile.</span></span></h2></div>
-  <div class="shead__aside" data-reveal><p>Product counts as shown on the homepage collection tiles. Publishing them tells a customer whether a category is worth opening.</p></div>
-</div>
-    <div class="hbars" data-reveal="fade" style="margin-top:clamp(1rem,2vw,1.6rem)"><div class="hbar">
-  <span class="hbar__k">Blades</span>
-  <div class="hbar__track"><div class="hbar__fill" style="--w:100%;--d:0ms"></div></div>
-  <span class="hbar__v">50</span>
-</div><div class="hbar">
-  <span class="hbar__k">Rubber</span>
-  <div class="hbar__track"><div class="hbar__fill" style="--w:100%;--d:90ms"></div></div>
-  <span class="hbar__v">50</span>
-</div><div class="hbar">
-  <span class="hbar__k">Shirts</span>
-  <div class="hbar__track"><div class="hbar__fill" style="--w:70%;--d:180ms"></div></div>
-  <span class="hbar__v">35</span>
-</div><div class="hbar">
-  <span class="hbar__k">Paddles</span>
-  <div class="hbar__track"><div class="hbar__fill" style="--w:38%;--d:270ms"></div></div>
-  <span class="hbar__v">19</span>
-</div><div class="hbar">
-  <span class="hbar__k">Balls</span>
-  <div class="hbar__track"><div class="hbar__fill" style="--w:36%;--d:360ms"></div></div>
-  <span class="hbar__v">18</span>
-</div><div class="hbar">
-  <span class="hbar__k">Combo specials</span>
-  <div class="hbar__track"><div class="hbar__fill" style="--w:34%;--d:450ms"></div></div>
-  <span class="hbar__v">17</span>
-</div><div class="hbar">
-  <span class="hbar__k">Shoes</span>
-  <div class="hbar__track"><div class="hbar__fill" style="--w:14%;--d:540ms"></div></div>
-  <span class="hbar__v">7</span>
-</div></div>
-    <p class="note" style="margin-top:1.8rem" data-reveal>Blades and rubber carry the range; shoes and novelty
-    items do not. A store that hides those numbers sends a customer into an empty room and loses them there.</p>
-  </div>
-</section>
-
-<section class="results section">
-  <div class="wrap">
-    <div class="shead">
-  <div class="shead__no" data-reveal="fade"><p class="mono mono--accent">03</p><p class="mono">Performance</p></div>
-  <div class="shead__title"><h2 class="display h2 lines"><span class="line"><span>It is fast, and</span></span><span class="line"><span>nothing jumps.</span></span></h2></div>
-  <div class="shead__aside" data-reveal><p>Core Web Vitals as Shopify recorded them over thirty days. These are the three measurements Google uses to judge whether a page is usable.</p></div>
-</div>
-
-    <figure class="shot" data-reveal>
-  <button type="button" class="shot__open" data-lightbox="gewo-vitals.jpg" data-alt="Thirty days of real visitor data. LCP 1201ms. INP 56ms. CLS 0. All three rated Good." data-caption="Thirty days of real visitor data. LCP 1201ms. INP 56ms. CLS 0. All three rated Good." aria-label="Open full size: Thirty days of real visitor data. LCP 1201ms. INP 56ms. CLS 0. All three rated Good."><span class="shot__frame"><img src="gewo-vitals.jpg" alt="Thirty days of real visitor data. LCP 1201ms. INP 56ms. CLS 0. All three rated Good." width="688" height="76" loading="lazy" decoding="async"><span class="shot__zoom">Tap to enlarge</span></span></button>
-  <figcaption class="shot__cap">Thirty days of real visitor data. <b>LCP 1201ms. INP 56ms. CLS 0.</b> All three rated Good.</figcaption>
-</figure>
-
-    <div class="statrow" style="margin-top:clamp(2.2rem,4.5vw,3.4rem)" data-stagger>
-      <div class="stat stat--hl" data-reveal>
-        <p class="stat__v">1.2s</p>
-        <p class="stat__l mono">Largest Contentful Paint. Google calls anything under 2.5s good, so this is less than half the limit</p>
-      </div>
-      <div class="stat" data-reveal>
-        <p class="stat__v">56ms</p>
-        <p class="stat__l mono">Interaction to Next Paint. The threshold is 200ms. This is roughly a quarter of it</p>
-      </div>
-      <div class="stat" data-reveal>
-        <p class="stat__v">0</p>
-        <p class="stat__l mono">Cumulative Layout Shift. Nothing on the page moves while it loads. Not low, zero</p>
-      </div>
+    <div class="grid g-2">
+      <figure class="shot" data-reveal><img src="assets/img/gewo-pdp.jpg" alt="A GEWO USA product page" width="1366" height="1180" loading="lazy" decoding="async"><figcaption>Product page &middot; price, variant, stock and both buy paths above the fold</figcaption></figure>
+      <figure class="shot" data-reveal><img src="assets/img/gewo-pdp-bands.jpg" alt="The who-it-is-for and performance bands below a GEWO USA product" width="1366" height="1250" loading="lazy" decoding="async"><figcaption>Below every product &mdash; who it is for, a performance read, and the sponsored players</figcaption></figure>
     </div>
+    <div style="margin-top:clamp(1.6rem,4vw,3rem)">
+      <figure class="shot" data-reveal><img src="assets/img/gewo-vitals.jpg" alt="Shopify Core Web Vitals for GEWO USA: LCP 1201ms, INP 56ms, CLS 0, all rated good" width="688" height="76" loading="lazy" decoding="async"><figcaption>Core Web Vitals &middot; 30 days, as Shopify recorded them</figcaption></figure>
+    </div>
+    <p class="foot-note" data-reveal style="margin-top:1.6rem">The speed figures above are measured. There is no conversion or revenue data I can publish for this store, so none appears here.</p>
+  </div>
+</section>
 
-    <div class="split" style="margin-top:clamp(2.2rem,4.5vw,3.4rem)">
-      <div class="split__l" data-reveal>
-        <h3 class="display h3" style="max-width:20ch">Why a store owner should care about the third one.</h3>
-      </div>
-      <div class="split__r prose" data-reveal data-delay="120">
-        <p>Layout shift is what happens when a page loads in pieces and the thing you were about to tap slides out
-        from under your thumb. On a phone it is the reason people tap the wrong button and leave.</p>
-        <p>A score of zero means it never happens here. That is not a design flourish, it is a checkout that does
-        not lose people for a stupid reason.</p>
-      </div>
+<section class="sect sect--tight">
+  <div class="wrap">
+    <p class="label" data-reveal>Next project</p>
+    <div class="nextp" data-reveal style="margin-top:1rem">
+      <h2>OCTAGON.</h2>
+      <a class="btn btn--primary" href="octagon.html"><span>View case</span><svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true"><path d="M10 1l5 5-5 5M15 6H0" stroke="currentColor" stroke-width="1.6"/></svg></a>
     </div>
   </div>
 </section>
-
-<section class="section">
-  <div class="wrap">
-    <div class="rail">
-      <div class="rail__side" data-reveal="fade">
-        <p class="mono mono--accent">Design decisions</p>
-        <p class="mono" style="margin-top:.6rem">Four choices and the reasoning behind them</p>
-        <div class="facts" style="margin-top:2rem">
-          <div class="fact"><span class="mono">Store type</span><span class="fact__v">Manufacturer-owned</span></div>
-          <div class="fact"><span class="mono">Nav headings</span><span class="fact__v">6, nested</span></div>
-          <div class="fact"><span class="mono">Subcategories</span><span class="fact__v">27</span></div>
-          <div class="fact"><span class="mono">Products on tiles</span><span class="fact__v">196</span></div>
-          <div class="fact"><span class="mono">Sponsored players</span><span class="fact__v">6 featured</span></div>
-          <div class="fact"><span class="mono">Free shipping</span><span class="fact__v">Orders over $60</span></div>
-        </div>
-      </div>
-      <div class="rail__main">
-        <div class="beat" data-reveal>
-  <h3 class="beat__h"><i>01</i><span>A manufacturer&rsquo;s store has two jobs at once</span></h3>
-  <div class="prose"><p>GEWO USA was established by Ben Nisbet with professional player Mishel Levinski, on the principle of building equipment &ldquo;with the eyes of a player&rdquo;.</p><p>That changes the brief. A multi-brand retailer helps you choose <em>between</em> brands. A manufacturer&rsquo;s store has to carry the brand itself and still work as a shop. Every layout decision is a negotiation between those two jobs.</p></div>
-</div><div class="beat" data-reveal>
-  <h3 class="beat__h"><i>02</i><span>Navigation built on how equipment is classified</span></h3>
-  <div class="prose"><p>Twenty-seven subcategories under six headings, following the sport&rsquo;s own taxonomy rather than a generic shop template. A player who knows they want long pips reaches them in two moves.</p><p>The menu is doing the work a shop assistant would do, and it can only do that if whoever built it understands the categories.</p></div>
-</div><div class="beat" data-reveal>
-  <h3 class="beat__h"><i>03</i><span>Four claims a reseller cannot make</span></h3>
-  <div class="prose"><p>Pro tested, match-ready consistency, premium materials, precision engineered. Those are manufacturing claims, and a reseller has no standing to make them.</p><p>Sitting them under the hero, before the catalogue, frames everything below as the manufacturer&rsquo;s own equipment rather than another storefront selling the same boxes.</p></div>
-</div><div class="beat" data-reveal>
-  <h3 class="beat__h"><i>04</i><span>Combo specials, for the customer who does not know what to ask</span></h3>
-  <div class="prose"><p>The hardest customer in table tennis retail is the one who cannot pair a blade with a rubber. Pre-matched setups get their own navigation category, homepage section and tile, with the saving shown as a percentage.</p><p>An intimidating configuration problem becomes one product decision, without hiding the components from players who do want to choose.</p></div>
-</div>
-        <div class="caveat" data-reveal>
-          <p class="mono mono--accent">What I am not claiming</p>
-          <p>The speed numbers above are real and measured. <strong>There is no conversion or revenue data I can
-          publish for this store</strong>, so none appears here. The conversion figures on this site belong to the
-          Table Tennis USA project and only to it.</p>
-          <p>What GEWO USA shows is a different problem solved: a brand-owned catalogue rather than a multi-brand
-          retailer, built fast. The store is live. Judge the execution there.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<a class="next" href="paul-david.html" data-cursor="Next case">
-  <div class="wrap">
-    <p class="mono mono--accent" data-reveal="fade">Next project &mdash; 03</p>
-    <h2 class="next__t" data-reveal style="margin-top:1rem">Paul David</h2>
-  </div>
-</a>
-
-<section class="cta section">
-  <div class="aura" aria-hidden="true"></div>
-  <div class="wrap" style="position:relative;z-index:2">
-    <p class="mono eyebrow" data-reveal="fade">Contact</p>
-    <h2 class="display h2" data-reveal style="margin-top:1.4rem;max-width:18ch">Selling your own brand direct?</h2>
-    <p class="lead lead--wide" data-reveal style="margin-top:1.4rem">A manufacturer store has a different problem from a retailer. Tell me about your range and where customers get lost in it.</p>
-    <div style="margin-top:clamp(2.2rem,5vw,3.6rem)" data-reveal>
-      <a class="cta__mail" href="mailto:akintayo@akintayoakingbehin.com?subject=Website%20project%20enquiry">akintayo@akintayoakingbehin.com</a>
-    </div>
-    
-  </div>
-</section>
-
 </main>
-<footer class="foot">
+<footer class="ftr">
   <div class="wrap">
-    <div class="foot__grid">
-      <div class="foot__brand">
-        <a class="logo" href="index.html"><span class="logo__ball"></span>AKINTAYO</a>
-        <p style="color:var(--fg-2);max-width:30ch">Website design, ecommerce and conversion work for the table tennis industry.</p>
-        <p class="mono">Akingbehin Akintayo — working with clients internationally from Nigeria</p>
-      </div>
-      <nav class="foot__col" aria-label="Site"><p class="mono">Site</p><a class="foot__link" href="work.html">Work</a><a class="foot__link" href="services.html">Services</a><a class="foot__link" href="about.html">About</a><a class="foot__link" href="contact.html">Contact</a></nav><nav class="foot__col" aria-label="Work"><p class="mono">Work</p><a class="foot__link" href="table-tennis-usa.html">Table Tennis USA</a><a class="foot__link" href="gewo-usa.html">GEWO USA</a><a class="foot__link" href="paul-david.html">Paul David</a></nav>
-      <div class="foot__mail">
-        <p class="mono">Email</p>
-        <a class="foot__link" href="mailto:akintayo@akintayoakingbehin.com?subject=Website%20project%20enquiry" style="word-break:break-word">akintayo@akintayoakingbehin.com</a>
-        <p class="mono" style="margin-top:.4rem">Email is the only contact method.</p>
-      </div>
+    <div class="ftr__top">
+      <div><span class="mark" aria-hidden="true">AKINTAYO<i></i></span></div>
+      <div><h3>Pages</h3><ul><li><a href="work.html">Work</a></li><li><a href="sports.html">Sports</a></li><li><a href="services.html">Services</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div><h3>Sports</h3><ul><li><a href="sports.html#table-tennis">Table tennis</a></li><li><a href="sports.html#football">Football</a></li><li><a href="sports.html#cricket">Cricket</a></li><li><a href="sports.html#volleyball">Volleyball</a></li><li><a href="sports.html#field-hockey">Field &amp; ice hockey</a></li></ul></div>
+      <div><h3>Contact</h3><ul>
+        <li><a href="mailto:akintayo@akintayoakingbehin.com?subject=Website%20project%20enquiry">akintayo@akintayoakingbehin.com</a></li>
+        <li>Osun State, Nigeria</li>
+        <li>Working worldwide</li>
+      </ul></div>
     </div>
-    <div class="foot__wordmark" aria-hidden="true">AKINTAYO</div>
-    <div class="foot__bar">
-      <p class="mono">&copy; <span data-year>2026</span> Akingbehin Akintayo</p>
-      <p class="mono">akintayoakingbehin.com</p>
+    <div class="ftr__bot">
+      <span>&copy; 2026 Akingbehin Akintayo</span>
+      <span>Sports web design</span>
+      <span data-clock>03:16 AM GMT+1</span>
     </div>
   </div>
 </footer>
-<script src="site.js" defer></script>
+<div class="sticky" aria-hidden="false">
+  <span style="font-size:.9rem">Have a project?</span>
+  <a class="btn btn--light" href="mailto:akintayo@akintayoakingbehin.com?subject=Website%20project%20enquiry"><span>Start</span><svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true"><path d="M10 1l5 5-5 5M15 6H0" stroke="currentColor" stroke-width="1.6"/></svg></a>
+</div>
+<script src="js/site.js" defer></script>
 </body>
 </html>
