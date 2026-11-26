@@ -174,20 +174,33 @@
   }
 
   /* --------------------------------------------------- video lightbox */
-  var vtrigger = $("[data-video]");
+  var vtriggers = $$("[data-video]");
   var dlg = $("#videoDialog");
-  if (vtrigger && dlg && typeof dlg.showModal === "function") {
+  if (vtriggers.length && dlg && typeof dlg.showModal === "function") {
     var vid = $("video", dlg);
-    vtrigger.addEventListener("click", function () {
-      dlg.showModal();
-      if (vid) { try { vid.play(); } catch (err) {} }
+    var opener = null;
+    vtriggers.forEach(function (b) {
+      b.addEventListener("click", function () {
+        opener = b;
+        if (vid) {
+          var src = b.getAttribute("data-video");
+          if (src && vid.getAttribute("src") !== src) {
+            vid.setAttribute("src", src);
+            vid.load();
+          }
+          var pos = b.getAttribute("data-poster");
+          if (pos) vid.setAttribute("poster", pos);
+        }
+        dlg.showModal();
+        if (vid) { try { vid.play(); } catch (err) {} }
+      });
     });
     var x = $(".lbx__x", dlg);
     if (x) x.addEventListener("click", function () { dlg.close(); });
     dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
     dlg.addEventListener("close", function () {
       if (vid) { vid.pause(); vid.currentTime = 0; }
-      vtrigger.focus();
+      if (opener) opener.focus();
     });
   }
 

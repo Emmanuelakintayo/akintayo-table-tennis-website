@@ -116,6 +116,30 @@ def dims(fname, fallback=(1600, 1200)):
         return fallback
 
 
+PLAY_ICON = ('<svg width="22" height="26" viewBox="0 0 22 26" fill="currentColor">'
+             '<path d="M22 13 0 26V0z"/></svg>')
+
+
+def vcard(video, poster, pw, ph, dur, name, role):
+    """One video testimonial. The button carries the file so a single
+    lightbox can play whichever card was clicked."""
+    return f"""<figure class="testimonial tvid" data-reveal>
+  <button class="tvid__poster" type="button" data-video="{video}" data-poster="{poster}"
+          aria-label="Play the video testimonial from {name}">
+    {img(poster, f"Still from the video testimonial by {name}", pw, ph)}
+    <span class="play" aria-hidden="true">{PLAY_ICON}</span>
+    <span class="tvid__dur">{dur}</span>
+  </button>
+  <figcaption class="tvid__cap">
+    <span class="tvid__av" aria-hidden="true"></span>
+    <span class="tvid__who">
+      <strong>{name}</strong>
+      <span class="body">{role}</span>
+    </span>
+  </figcaption>
+</figure>"""
+
+
 def ashot(src, alt, cap, w, h, kicker):
     """A dashboard screenshot shown large, never upscaled past its own pixels,
     pannable on a narrow screen rather than shrunk to nothing."""
@@ -144,9 +168,8 @@ def header(current, over_hero=False):
         cur = ' aria-current="page"' if href == current else ""
         links += f'<a href="{href}"{cur}>{label}<sup>0{i}</sup></a>'
     menu_links = "".join(f'<a href="{h}">{l}</a>' for l, h in NAV)
-    cls = "hdr" + ("" if over_hero else " hdr--static")
-    dark = ' style="color:#fff"' if over_hero else ""
-    return f"""<header class="{cls}"{dark}>
+    cls = "hdr" + (" hdr--over" if over_hero else " hdr--static")
+    return f"""<header class="{cls}">
   <div class="wrap hdr__in">
     <a class="mark" href="index.html" aria-label="Akintayo, home">AKINTAYO<i></i></a>
     <nav class="nav" aria-label="Primary">{links}</nav>
@@ -230,6 +253,8 @@ def page(fname, title, desc, current, body, og="og-default.jpg", jsonld="", over
 <meta name="twitter:description" content="{html.escape(desc, quote=True)}">
 <meta name="twitter:image" content="{DOMAIN}/{og}">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 {FONTS}
 <link rel="stylesheet" href="site.css">
 {jsonld}
@@ -370,36 +395,21 @@ def build_home():
       <div>
         <p class="label" data-reveal>( 05 ) &mdash; Client story</p>
         <h2 class="tm" data-reveal style="margin-top:1.2rem;font-size:clamp(2rem,4vw,3.25rem)">IN THEIR<br><em class="it" style="color:var(--pear);white-space:nowrap">own words.</em></h2>
-        <p class="body" data-reveal style="margin-top:1.4rem;max-width:34ch">A short video from a client I&rsquo;ve worked with.</p>
+        <p class="body" data-reveal style="margin-top:1.4rem;max-width:34ch">Two clients, on camera, in their own words.</p>
       </div>
-      <div>
-        <figure class="testimonial tvid" data-reveal>
-          <button class="tvid__poster" type="button" data-video aria-label="Play the client testimonial video">
-            {img("testimonial-poster.jpg","Still from the client testimonial video",720,1280,style="object-fit:contain;background:var(--royal)")}
-            <span class="play" aria-hidden="true"><svg width="22" height="26" viewBox="0 0 22 26" fill="currentColor"><path d="M22 13 0 26V0z"/></svg></span>
-            <span class="tvid__tag">Video &middot; testimonial.mp4</span>
-            <span class="tvid__dur">1:16</span>
-          </button>
-          <figcaption class="tvid__cap">
-            <span class="tvid__av" aria-hidden="true"></span>
-            <span>
-              <strong style="display:block">Ben Nisbet</strong>
-              <span class="body" style="font-size:.85rem">CEO &amp; founder &middot; Table Tennis Store USA and GEWO USA</span>
-            </span>
-            <span class="tvid__sport">Table tennis</span>
-          </figcaption>
-        </figure>
+      <div class="vgrid">
+        {vcard("testimonial.mp4", "testimonial-poster.jpg", 720, 1280, "1:16",
+               "Ben Nisbet", "CEO &amp; founder &middot; Table Tennis Store USA and GEWO USA")}
+        {vcard("testimonial-shashin.mp4", "testimonial-shashin-poster.jpg", 640, 1136, "0:30",
+               "Shashin Shodhan", "CEO &amp; founder &middot; Fremont Table Tennis Academy")}
       </div>
     </div>
   </div>
 </section>
 
-<dialog class="lbx" id="videoDialog" aria-label="Client testimonial video">
+<dialog class="lbx" id="videoDialog" aria-label="Client video testimonial">
   <button class="lbx__x" type="button" aria-label="Close the video">&times;</button>
-  <video controls playsinline preload="metadata" poster="testimonial-poster.jpg" style="aspect-ratio:9/16;max-height:82vh;width:auto;margin-inline:auto">
-    <source src="testimonial.mp4" type="video/mp4">
-    <a href="testimonial.mp4">Download the testimonial video</a>
-  </video>
+  <video controls playsinline preload="none" style="aspect-ratio:9/16;max-height:82vh;width:auto;margin-inline:auto"></video>
 </dialog>
 
 {cta()}

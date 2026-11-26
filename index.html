@@ -16,6 +16,8 @@
 <meta name="twitter:description" content="Websites for sports clubs, academies, brands and stores — table tennis, football, cricket, volleyball and hockey. Designed and built by Akintayo.">
 <meta name="twitter:image" content="https://akintayoakingbehin.com/og-default.jpg">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Instrument+Serif:ital@1&family=Martian+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="site.css">
 <script type="application/ld+json">
@@ -28,7 +30,7 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="hdr" style="color:#fff">
+<header class="hdr hdr--over">
   <div class="wrap hdr__in">
     <a class="mark" href="index.html" aria-label="Akintayo, home">AKINTAYO<i></i></a>
     <nav class="nav" aria-label="Primary"><a href="work.html">Work<sup>01</sup></a><a href="sports.html">Sports<sup>02</sup></a><a href="services.html">Services<sup>03</sup></a><a href="about.html">About<sup>04</sup></a><a href="contact.html">Contact<sup>05</sup></a></nav>
@@ -162,36 +164,47 @@
       <div>
         <p class="label" data-reveal>( 05 ) &mdash; Client story</p>
         <h2 class="tm" data-reveal style="margin-top:1.2rem;font-size:clamp(2rem,4vw,3.25rem)">IN THEIR<br><em class="it" style="color:var(--pear);white-space:nowrap">own words.</em></h2>
-        <p class="body" data-reveal style="margin-top:1.4rem;max-width:34ch">A short video from a client I&rsquo;ve worked with.</p>
+        <p class="body" data-reveal style="margin-top:1.4rem;max-width:34ch">Two clients, on camera, in their own words.</p>
       </div>
-      <div>
+      <div class="vgrid">
         <figure class="testimonial tvid" data-reveal>
-          <button class="tvid__poster" type="button" data-video aria-label="Play the client testimonial video">
-            <img src="testimonial-poster.jpg" alt="Still from the client testimonial video" width="720" height="1280" loading="lazy" decoding="async" style="object-fit:contain;background:var(--royal)">
-            <span class="play" aria-hidden="true"><svg width="22" height="26" viewBox="0 0 22 26" fill="currentColor"><path d="M22 13 0 26V0z"/></svg></span>
-            <span class="tvid__tag">Video &middot; testimonial.mp4</span>
-            <span class="tvid__dur">1:16</span>
-          </button>
-          <figcaption class="tvid__cap">
-            <span class="tvid__av" aria-hidden="true"></span>
-            <span>
-              <strong style="display:block">Ben Nisbet</strong>
-              <span class="body" style="font-size:.85rem">CEO &amp; founder &middot; Table Tennis Store USA and GEWO USA</span>
-            </span>
-            <span class="tvid__sport">Table tennis</span>
-          </figcaption>
-        </figure>
+  <button class="tvid__poster" type="button" data-video="testimonial.mp4" data-poster="testimonial-poster.jpg"
+          aria-label="Play the video testimonial from Ben Nisbet">
+    <img src="testimonial-poster.jpg" alt="Still from the video testimonial by Ben Nisbet" width="720" height="1280" loading="lazy" decoding="async">
+    <span class="play" aria-hidden="true"><svg width="22" height="26" viewBox="0 0 22 26" fill="currentColor"><path d="M22 13 0 26V0z"/></svg></span>
+    <span class="tvid__dur">1:16</span>
+  </button>
+  <figcaption class="tvid__cap">
+    <span class="tvid__av" aria-hidden="true"></span>
+    <span class="tvid__who">
+      <strong>Ben Nisbet</strong>
+      <span class="body">CEO &amp; founder &middot; Table Tennis Store USA and GEWO USA</span>
+    </span>
+  </figcaption>
+</figure>
+        <figure class="testimonial tvid" data-reveal>
+  <button class="tvid__poster" type="button" data-video="testimonial-shashin.mp4" data-poster="testimonial-shashin-poster.jpg"
+          aria-label="Play the video testimonial from Shashin Shodhan">
+    <img src="testimonial-shashin-poster.jpg" alt="Still from the video testimonial by Shashin Shodhan" width="640" height="1136" loading="lazy" decoding="async">
+    <span class="play" aria-hidden="true"><svg width="22" height="26" viewBox="0 0 22 26" fill="currentColor"><path d="M22 13 0 26V0z"/></svg></span>
+    <span class="tvid__dur">0:30</span>
+  </button>
+  <figcaption class="tvid__cap">
+    <span class="tvid__av" aria-hidden="true"></span>
+    <span class="tvid__who">
+      <strong>Shashin Shodhan</strong>
+      <span class="body">CEO &amp; founder &middot; Fremont Table Tennis Academy</span>
+    </span>
+  </figcaption>
+</figure>
       </div>
     </div>
   </div>
 </section>
 
-<dialog class="lbx" id="videoDialog" aria-label="Client testimonial video">
+<dialog class="lbx" id="videoDialog" aria-label="Client video testimonial">
   <button class="lbx__x" type="button" aria-label="Close the video">&times;</button>
-  <video controls playsinline preload="metadata" poster="testimonial-poster.jpg" style="aspect-ratio:9/16;max-height:82vh;width:auto;margin-inline:auto">
-    <source src="testimonial.mp4" type="video/mp4">
-    <a href="testimonial.mp4">Download the testimonial video</a>
-  </video>
+  <video controls playsinline preload="none" style="aspect-ratio:9/16;max-height:82vh;width:auto;margin-inline:auto"></video>
 </dialog>
 
 <section class="cta">
